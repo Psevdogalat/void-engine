@@ -1,6 +1,6 @@
 *.exe
 *.o
 *.dll
-textures
+sources
 tests
 *.vim

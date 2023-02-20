@@ -24,7 +24,7 @@ static UINT 			main_window_height 	= 420;
 static const UINT 		aver_frames 		= 10;	
 static const double 	frame_lock 			= 30.0;
 static const LPCSTR 	main_window_class_name 	= "main_window_class";
-static const LPCSTR 	main_window_header	  	= "brainy lab test";
+static const LPCSTR 	main_window_header	  	= "voidEngine2D";
 
 static HWND 			main_window;
 static HGLRC 			render_context;

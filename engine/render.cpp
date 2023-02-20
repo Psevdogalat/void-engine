@@ -582,7 +582,7 @@ static void load_textures(){
 	cppfs::FilePath		text_dir_path;
 	cppfs::FilePath		text_file_path;
 	
-	get_absolute_path(stext_dir_path, "textures/");
+	get_absolute_path(stext_dir_path, "sources/");
 	text_dir_path	= stext_dir_path;
 	text_dir		= cppfs::fs::open(text_dir_path.path());
 	
