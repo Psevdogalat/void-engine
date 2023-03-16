@@ -10,10 +10,9 @@
 	#include <gui.h>
 	
 	#include <std_defines.h>
-	#include <list>
-	
+	#include <list>	
 
-	namespace ENGINE{
+	namespace VoidEngine{
 		
 		class TIMER{
 			protected:
@@ -271,49 +270,39 @@
                     const VECTOR2D& Normal
                 );
 
-                void 
-                despawn
-                (
-                    GAME_OBJECT* Object
-                );    
+                void despawn(GAME_OBJECT* Object);    
 
 		};	
-		
-		/*
-		void 			game_module_entrypoint	();
-		SCENE*			register_scene			(SCENE* );
-		SCENE*			set_current_scene		(SCENE* );
-		void 			free					(SCENE* );
-		*/
-		
-		SCENE* 	        get_current_scene		();
-				
-		TIMER* 			create_timer			();
-		void 			free_timer				(TIMER* 			);
-		
-		PHYSICAL_MODEL* create_physical_model	();
-		void 			free_physical_model		(PHYSICAL_MODEL* 	);
-		
-		COLLISION_NODE*	create_collision_node	
-		(
-			GAME_OBJECT*, 
-			bool, 
-			bool, 
-			bool, 
-			COLLISION_MODEL* 
-		);
-		
-		void free_collision_node (COLLISION_NODE* );
-		
-		GAME_OBJECT* 	spawn		
-		(
-			GAME_OBJECT*, 
-			const VECTOR2D&, 
-			const VECTOR2D& 
-		);
-		
-		void despawn (GAME_OBJECT* );
+	
 
+		class Engine
+		{
+			public:
+			Engine();
+			~Engine();
+
+			virtual int init();			
+			virtual void free();
+			int run(int argc, const char **argv);
+			int addScene(Scene * scene);
+			int removeScene(Scene * scene);
+			int setTitle(const char * title);
+			
+			private
+				std::list<Scene *> scenes;
+
+				int initEngine();
+				void freeEngine();
+				int initPlatform();
+				void freePlatform();
+				int initRender();
+				void freeRender();
+
+				int calculate();
+				int render();
+				int mainCycle();
+
+		};	
 	}
 
 #endif

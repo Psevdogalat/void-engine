@@ -1,10 +1,12 @@
-#include <engine.h>
+#include <engine.hpp>
 #include <graphics.h>
 #include <memory_manage.h>
 #include <png_images.h>
 #include <gui.h>
 
+#include <windows.h>
 #include <gl/glew.h>
+
 #include <cppfs/fs.h>
 #include <cppfs/FileHandle.h>
 #include <cppfs/FileIterator.h>
@@ -17,7 +19,9 @@
 #include <algorithm>
 #include <cstdio>
 
-using namespace ENGINE;
+using namespace VoidEngine;
+
+HWINDOW createMainWindow(UINT width, UINT height);
 
 /* GL raw structs */
 typedef struct {
@@ -329,8 +333,114 @@ void ENGINE::set_draw_physical_models(bool Flag){
 	draw_physical_models = Flag;
 }
 
-bool ENGINE::init_graphic(){
+int Engine::initRender(){
+
+	HWND hDummyWnd;
+	HWND hRenderWnd;	
+ 
+	HDC		hDummyWndDc;
+	HDC 	hRenderWndDC;
+	HGLRC 	hDummyGLRC;
+	HGLR 	hMainGLRC;
+
+	GLint glVersion[2];
+	UINT nNumFormats;
+	int	pixelFormatIndex;
+	PIXELFORMATDESCRIPTOR 	pixelFormatDescriptor;
+
+ 	hDummyWnd = createMainWindow(winWidth, winHeight);	
+	if(hMainWindow == INVALID_HANDLE_VALUE){
+		DEBUG("Main window creation error\n");
+		return 1;
+	}
 	
+	hMainWindowDc = GetDC(hMainWindow);
+
+	ZeroMemory(&pixelFormatDescriptor, sizeof(pixelFormatDescriptor));
+	pixelFormatDescriptor.nSize 		= sizeof(pixelFormatDescriptor);
+	pixelFormatDescriptor.nVersion		= 1;
+	pixelFormatDescriptor.dwFlags		= PFD_DRAW_TO_WINDOW | 
+		PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	pixelFormatDescriptor.iLayerType	= PFD_MAIN_PLANE;
+	pixelFormatDescriptor.iPixelType	= PFD_TYPE_RGBA;
+	pixelFormatDescriptor.cColorBits	= 24;
+	pixelFormatDescriptor.cDepthBits 	= 16;
+	
+	pixelFormatIndex = ChoosePixelFormat(hMainWindowDc, &pixelFormatDescriptor);
+	if(pixelFormatIndex == 0){
+		DEBUG("invalid pixel format!\n");
+		return 1;
+	}
+	
+	SetPixelFormat(hMainWindowDc, pixelFormatIndex, &pixelFormatDescriptor);
+	
+	hDummyGLRC = wglCreateContext(hMainWindowDc);
+	wglMakeCurrent(hMainWindowDc, hDummyGLRC);
+	glewInit();
+
+	glGetIntegerv(GL_MAJOR_VERSION, &gl_version[0]);
+	glGetIntegerv(GL_MINOR_VERSION, &gl_version[1]);
+	
+	DEBUG("Avalable GL version %d.%d\n", gl_version[0], gl_version[1] );
+	
+	wglMakeCurrent(NULL, NULL);
+	wglDeleteContext(hDummyGLRC);
+	ReleaseDC(hDummyWindow, hDummyWindowDC);
+	DestroyWindow(hDummyWindow);
+	
+	main_window = CreateWindowEx(0, main_window_class_name, main_window_header,
+		window_style,
+		CW_USEDEFAULT, CW_USEDEFAULT, 
+		areaSizeRect.right, area_size_rect.bottom, NULL, NULL, Instance, NULL);
+		
+	if(main_window == INVALID_HANDLE_VALUE){
+		printf("Instance of window class ""%s"" creation error!\n",main_window_class_name);
+		return 1;
+	}
+	
+	main_window_dc = GetDC(main_window);
+	
+	//* natural gl context creation  *//
+	float pfAttribFList[] = {0, 0};
+	int piAttribIList[] = { 
+		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+		WGL_COLOR_BITS_ARB, 32,
+		WGL_RED_BITS_ARB, 8,
+		WGL_GREEN_BITS_ARB, 8,
+		WGL_BLUE_BITS_ARB, 8,
+		WGL_ALPHA_BITS_ARB, 8,
+		WGL_DEPTH_BITS_ARB, 16,
+		WGL_STENCIL_BITS_ARB, 0,
+		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+		WGL_SAMPLE_BUFFERS_ARB, GL_TRUE,
+		WGL_SAMPLES_ARB, 16,
+		0, 0
+	};
+	
+	int gl_context_attrs[] =
+	{
+		WGL_CONTEXT_MAJOR_VERSION_ARB, 	gl_version[0],
+		WGL_CONTEXT_MINOR_VERSION_ARB, 	gl_version[1],
+		//WGL_CONTEXT_PROFILE_MASK_ARB,	WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+		//WGL_CONTEXT_PROFILE_MASK_ARB,	WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+		0, 0
+	};
+	
+	wglChoosePixelFormatARB(main_window_dc, piAttribIList, pfAttribFList, 1, &pixel_format_index, &nNumFormats);
+	SetPixelFormat(main_window_dc, pixel_format_index, &pfd);
+	
+	render_context = wglCreateContextAttribsARB(main_window_dc, nullptr, gl_context_attrs);
+	wglMakeCurrent(main_window_dc, render_context);
+	/*==================================================*/
+	
+	print_gl_info();
+	glViewport(0, 0, main_window_width, main_window_height);
+	ReleaseDC(main_window,main_window_dc);
+	
+
+		
 	glGetIntegerv(GL_MAJOR_VERSION, &gl_version[0]);
 	glGetIntegerv(GL_MINOR_VERSION, &gl_version[1]);
 	

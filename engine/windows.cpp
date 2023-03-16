@@ -1,32 +1,31 @@
-#include <platform.h>
-#include <engine_platform.h>
-
-#include <std_defines.h>
-
 #include <windows.h>
 
 #include <gl/glew.h>
 #include <gl/wglew.h>
 #include <cstdio>
 
+#include <engine.hpp>
+#include <debug.h>
+
 static struct{
 	UINT width;
 	UINT height;
-}resolutions[]={
+}resolutions[] = 
+{
 	{640, 420},
 	{960, 630}
 };
 
-static const UINT 		cur_resolution 		= 1;
-
-static UINT 			main_window_width  	= 640;
-static UINT 			main_window_height 	= 420;
+static const UINT 		iResolution 		= 1;
 static const UINT 		aver_frames 		= 10;	
 static const double 	frame_lock 			= 30.0;
-static const LPCSTR 	main_window_class_name 	= "main_window_class";
-static const LPCSTR 	main_window_header	  	= "voidEngine2D";
 
-static HWND 			main_window;
+static const LPCSTR 	mainWindowClassName	= "voidEngineMainWindow";
+static const DWORD		mainWindowStyle = WS_CAPTION | WS_SYSMENU;
+static UINT 			mainWindowWidth;
+static UINT 			mainWindowHeight;
+
+
 static HGLRC 			render_context;
 static UINT_PTR			frame_timer;
 static DWORD			frame_sys_tick_last;
@@ -36,150 +35,60 @@ static double 			aver_frame_time = 0;
 static UINT				aver_cnt 		= 0;
 static double			frame_counter;
 
-LRESULT CALLBACK main_window_procedure(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK mainWindowProcedure(HWND, UINT, WPARAM, LPARAM);
+
 void dispatch_engine_message(const MSG* );
 void print_gl_info();
 
-int APIENTRY WinMain(HINSTANCE Instance, HINSTANCE Prev_instance, LPSTR Cmd_line, int Cmd_show){
-	
-	HDC	 					main_window_dc;	
-	WNDCLASSEX				wcex;
-	int 					pixel_format_index;
-	PIXELFORMATDESCRIPTOR 	pfd;
-	RECT					area_size_rect;
-	DWORD					window_style;
-	HGLRC 					dummy_gl_context;
-	GLint 					gl_version[2];
-	UINT 					nNumFormats;
-	
-	main_window_width 	= resolutions[cur_resolution].width;
-	main_window_height	= resolutions[cur_resolution].height;
-	
-	ZeroMemory(&wcex,sizeof(WNDCLASSEX));
-	wcex.cbSize 		= sizeof(WNDCLASSEX);
-	wcex.lpszClassName	= main_window_class_name;
-	wcex.hInstance		= Instance;
-	wcex.style			= CS_OWNDC;
-	wcex.lpfnWndProc	= main_window_procedure;
-	wcex.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wcex.hCursor		= LoadCursor(nullptr, IDC_ARROW);
-	
-	if(!RegisterClassEx(&wcex)){
-		printf("Window class ""%s"" registration error!\n",main_window_class_name);
-		return 1;
-	}
-	
-	window_style = WS_CAPTION | WS_SYSMENU;
-	ZeroMemory(&area_size_rect,sizeof(RECT));
-	area_size_rect.right	= main_window_width;
-	area_size_rect.bottom	= main_window_height;
-	
-	AdjustWindowRect(&area_size_rect,window_style,false);
-	area_size_rect.bottom 	-= (area_size_rect.top);
-	area_size_rect.right	-= area_size_rect.left;
-	
-	main_window = CreateWindowEx(0, main_window_class_name, main_window_header,
-		window_style,
-		CW_USEDEFAULT, CW_USEDEFAULT, 
-		area_size_rect.right, area_size_rect.bottom, NULL, NULL, Instance, NULL);
-		
-	if(main_window == INVALID_HANDLE_VALUE){
-		printf("Instance of window class ""%s"" creation error!\n",main_window_class_name);
-		return 1;
-	}
-	
-	main_window_dc = GetDC(main_window);
+HWINDOW createMainWindow(UINT width, UINT height)
+{
+	HINSTANCE instance;
+	RECT areaSizeRect;
 
-	ZeroMemory(&pfd,sizeof(PIXELFORMATDESCRIPTOR));
-	pfd.nSize 		= sizeof(PIXELFORMATDESCRIPTOR);
-	pfd.nVersion	= 1;
-	pfd.dwFlags		= PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-	pfd.iLayerType	= PFD_MAIN_PLANE;
-	pfd.iPixelType	= PFD_TYPE_RGBA;
-	pfd.cColorBits	= 24;
-	pfd.cDepthBits 	= 16;
-	
-	pixel_format_index = ChoosePixelFormat(main_window_dc, &pfd);
-	if(pixel_format_index == 0){
-		printf("invalid pixel format!\n");
-		return 1;
-	}
-	
-	SetPixelFormat(main_window_dc, pixel_format_index, &pfd);
-	
-	//* dummy context for version and compatibility check *//
-	dummy_gl_context = wglCreateContext(main_window_dc);
-	wglMakeCurrent(main_window_dc, dummy_gl_context);
-	glewInit();
+	instance  = GetModuleHandle(NULL);
 
-	glGetIntegerv(GL_MAJOR_VERSION, &gl_version[0]);
-	glGetIntegerv(GL_MINOR_VERSION, &gl_version[1]);
+	ZeroMemory(&areaSizeRect,sizeof(areaSizeRect));
+	areaSizeRect.right	= width;
+	areaSizeRect.bottom	= height;
 	
-	printf("Avalable GL version %d.%d\n", gl_version[0], gl_version[1] );
+	AdjustWindowRect(&areaSizeRect, winStyle, false);
+	width  = areaSizeRect.right - areaSizeRect.left;
+	height = areaSizeRect.bottom - areaSizeRect.top;
 	
-	wglMakeCurrent(NULL, NULL);
-	wglDeleteContext(dummy_gl_context);
-	ReleaseDC(main_window, main_window_dc);
-	DestroyWindow(main_window);
+	return CreateWindowEx(0, mainWindowClassName, NULL, 
+		mainWindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, width, height, 
+		NULL, NULL, instance, NULL);
+
+}
+
+int Engine::initPlatform()
+{
 	
-	main_window = CreateWindowEx(0, main_window_class_name, main_window_header,
-		window_style,
-		CW_USEDEFAULT, CW_USEDEFAULT, 
-		area_size_rect.right, area_size_rect.bottom, NULL, NULL, Instance, NULL);
-		
-	if(main_window == INVALID_HANDLE_VALUE){
-		printf("Instance of window class ""%s"" creation error!\n",main_window_class_name);
+	WNDCLASSEX				winClass;
+
+
+	
+	winWidth  = resolutions[iResolution].width;
+	winHeight = resolutions[iResolution].height;
+	
+	ZeroMemory(&winClass,sizeof(winClass));
+	winClass.cbSize 		= sizeof(winClass);
+	winClass.lpszClassName	= mainWindowClassName;
+	winClass.hInstance		= instance;
+	winClass.style			= CS_OWNDC;
+	winClass.lpfnWndProc	= winProc;
+	winClass.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
+	winClass.hCursor		= LoadCursor(nullptr, IDC_ARROW);
+	
+	if(!RegisterClassEx(&winClass)){
+		DEBUG("Window class ""%s"" registration error!\n", winClassName);
 		return 1;
 	}
 	
-	main_window_dc = GetDC(main_window);
-	
-	//* natural gl context creation  *//
-	float pfAttribFList[] = {0, 0};
-	int piAttribIList[] = { 
-		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
-		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
-		WGL_COLOR_BITS_ARB, 32,
-		WGL_RED_BITS_ARB, 8,
-		WGL_GREEN_BITS_ARB, 8,
-		WGL_BLUE_BITS_ARB, 8,
-		WGL_ALPHA_BITS_ARB, 8,
-		WGL_DEPTH_BITS_ARB, 16,
-		WGL_STENCIL_BITS_ARB, 0,
-		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
-		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-		WGL_SAMPLE_BUFFERS_ARB, GL_TRUE,
-		WGL_SAMPLES_ARB, 16,
-		0, 0
-	};
-	
-	int gl_context_attrs[] =
-	{
-		WGL_CONTEXT_MAJOR_VERSION_ARB, 	gl_version[0],
-		WGL_CONTEXT_MINOR_VERSION_ARB, 	gl_version[1],
-		//WGL_CONTEXT_PROFILE_MASK_ARB,	WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-		//WGL_CONTEXT_PROFILE_MASK_ARB,	WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
-		0, 0
-	};
-	
-	wglChoosePixelFormatARB(main_window_dc, piAttribIList, pfAttribFList, 1, &pixel_format_index, &nNumFormats);
-	SetPixelFormat(main_window_dc, pixel_format_index, &pfd);
-	
-	render_context = wglCreateContextAttribsARB(main_window_dc, nullptr, gl_context_attrs);
-	wglMakeCurrent(main_window_dc, render_context);
-	/*==================================================*/
-	
-	print_gl_info();
-	glViewport(0, 0, main_window_width, main_window_height);
-	ReleaseDC(main_window,main_window_dc);
-	
-	//printf("Timer val %d\n", (UINT)(1000.0/frame_lock));
+		//printf("Timer val %d\n", (UINT)(1000.0/frame_lock));
 	
 	frame_timer = SetTimer(main_window,0,((UINT)(1000.0/frame_lock))-10,nullptr);
 	frame_sys_tick_last = GetTickCount();
-	
-	/*engine init there*/
-	ENGINE::eng_init((const char*) Cmd_line);	
 	
 	ShowWindow(main_window,SW_NORMAL);
 	
@@ -201,7 +110,9 @@ int APIENTRY WinMain(HINSTANCE Instance, HINSTANCE Prev_instance, LPSTR Cmd_line
 	return 0;
 }
 
-LRESULT CALLBACK main_window_procedure(HWND Window, UINT Message, WPARAM W_param, LPARAM L_param){
+LRESULT CALLBACK mainWindowProcedure(HWND Window, UINT Message, 
+	WPARAM W_param, LPARAM L_param)
+{
 	PAINTSTRUCT paint_struct;
 	LPSTR		window_title;
 	static const UINT window_title_max_len = 50;
