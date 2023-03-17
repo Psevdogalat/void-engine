@@ -2,5 +2,6 @@
 *.o
 *.dll
 sources
+textures
 tests
 *.vim

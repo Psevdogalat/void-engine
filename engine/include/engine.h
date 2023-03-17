@@ -275,32 +275,48 @@
 		};	
 	
 
+		enum RetCode
+		{
+			SUCCESS,
+			ERR
+		};
+
 		class Engine
 		{
 			public:
 			Engine();
 			~Engine();
 
-			virtual int init();			
-			virtual void free();
+			static Engine * getInstance();
+
 			int run(int argc, const char **argv);
 			int addScene(Scene * scene);
 			int removeScene(Scene * scene);
 			int setTitle(const char * title);
 			
-			private
-				std::list<Scene *> scenes;
+			bool getAbsolutePath(std::string & pathAbsolute, 
+				const std::string & path);
+			
+			virtual int onInit();			
+			virtual int onFree();
 
-				int initEngine();
-				void freeEngine();
-				int initPlatform();
-				void freePlatform();
-				int initRender();
-				void freeRender();
+			private:
+			static Engine * instance = NULL;
+			std::list<Scene *> scenes;
 
-				int calculate();
-				int render();
-				int mainCycle();
+			int init();
+			int loop();
+			int handleEvent(EVENT_MSG & event);
+			int calculate();
+			int render();
+			int free();
+
+			int initPlatform();
+			int freePlatform();
+			int loopPlatform();
+
+			int initRenderer();
+			int freeRenderer();
 
 		};	
 	}

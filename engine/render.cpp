@@ -104,8 +104,7 @@ glmat_trans
 (const GLVECTOR2D&, const GLVECTOR2D&, const GLVECTOR2D& );
 
 /* render control ============================================================*/
-static GLint 			gl_version[2];
-static bool 			gl_core_profile;
+static bool 			coreProfile;
 static bool				draw_graphic_models;
 static bool 			draw_collision_models;
 static bool 			draw_physical_models;
@@ -333,28 +332,87 @@ void ENGINE::set_draw_physical_models(bool Flag){
 	draw_physical_models = Flag;
 }
 
+int Engine::freeRender()
+{
+
+	wglMakeCurrent	(nullptr, nullptr);
+	wglDeleteContext(hMainGLRC);
+	return 0;
+};
+
+void printGLInfo(){
+
+	int i;	
+	GLint profileMask;
+	GLint shaderVersionsNumber;
+	
+    const static struct 
+	{
+		const char * title;
+		GLenum	info_id;
+	}infoList[] = 
+	{
+		{"OPENGL_VERSION"				, GL_VERSION					},
+		{"GL_VENDOR"					, GL_VENDOR						},
+		{"GL_RENDERER"					, GL_RENDERER					},
+		{"GL_SHADING_LANGUAGE_VERSION"	, GL_SHADING_LANGUAGE_VERSION	}
+	};
+	
+	printf("==================GL_INFO=========================\n");
+
+	for(i = 0 ; i < sizeof(infoList)/sizeof(infoList[0]); i++)
+		printf("%s:\t %s\n",infoList[i].title, 
+			glGetString(infoList[i].info_id)
+		);
+	
+	glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMask);
+	printf("PROFILE_MASK: %X\n", profileMask);
+	printf("in %s_PROFILE\n", (profileMask & GL_CONTEXT_CORE_PROFILE_BIT)?
+		"CORE":"COMPATIBILITY");
+	
+	shaderVersionsNumber = 0;
+	glGetIntegerv(GL_NUM_SHADING_LANGUAGE_VERSIONS, &shaderVersionsNumber);
+	printf("SHADER VERSIONS:\n");
+	for(i = 0; i < shaderVersionsNumber; i++)
+		printf("VER % 3d: %s\n", i, 
+			glGetStringi(GL_SHADING_LANGUAGE_VERSION, i)
+		);
+	
+	printf("==================================================\n");
+	
+}
+
+
+
 int Engine::initRender(){
 
-	HWND hDummyWnd;
-	HWND hRenderWnd;	
- 
+	HINSTANCE	instance;
+	WNDCLASSEX	dummyWndClass;
+	HWND 		hDummyWnd;
+	HWND 		hRenderWnd;	
+
 	HDC		hDummyWndDc;
 	HDC 	hRenderWndDC;
 	HGLRC 	hDummyGLRC;
 	HGLR 	hMainGLRC;
 
+	GLint profileMask;
 	GLint glVersion[2];
 	UINT nNumFormats;
 	int	pixelFormatIndex;
 	PIXELFORMATDESCRIPTOR 	pixelFormatDescriptor;
 
- 	hDummyWnd = createMainWindow(winWidth, winHeight);	
-	if(hMainWindow == INVALID_HANDLE_VALUE){
-		DEBUG("Main window creation error\n");
-		return 1;
-	}
+	DEBUG("Init Renderer...\n");
 	
-	hMainWindowDc = GetDC(hMainWindow);
+	/* wglInit start ------------------------------------------------------- */
+	ZeroMemory(&dummyWndClass, sizeof(dummyWndClass));
+	dummyWndClass.cbSize 		= sizeof(dummyWndClass);
+	dummyWndClass.lpszClassName	= "openGLDummyWndClass";
+	dummyWndClass.hInstance		= instance;
+	dummyWndClass.style			= CS_OWNDC;
+	dummyWndClass.lpfnWndProc	= de;
+	dummyWndClass.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
+	dummyWndClass.hCursor		= LoadCursor(nullptr, IDC_ARROW);
 
 	ZeroMemory(&pixelFormatDescriptor, sizeof(pixelFormatDescriptor));
 	pixelFormatDescriptor.nSize 		= sizeof(pixelFormatDescriptor);
@@ -366,41 +424,48 @@ int Engine::initRender(){
 	pixelFormatDescriptor.cColorBits	= 24;
 	pixelFormatDescriptor.cDepthBits 	= 16;
 	
-	pixelFormatIndex = ChoosePixelFormat(hMainWindowDc, &pixelFormatDescriptor);
+
+	if(!RegisterClassEx(&dummyWndClass)){
+		DEBUG("Dummy win class registration error\n");
+		return 1;
+	}
+
+	hDummyWnd	= CreateWindowEx(0, dummyWndClass.lpszClassName, NULL, 
+		0 ,CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
+		NULL, NULL, instance, NULL);
+
+	if(hDummyWnd == INVALID_HANDLE_VALUE){
+		DEBUG("Dummy win creation error\n");
+		return 1;
+	}
+
+	hDummyWndDc = GetDC(hDummyWnd);
+
+	pixelFormatIndex = ChoosePixelFormat(hDummyWnd, &pixelFormatDescriptor);
 	if(pixelFormatIndex == 0){
 		DEBUG("invalid pixel format!\n");
 		return 1;
 	}
 	
-	SetPixelFormat(hMainWindowDc, pixelFormatIndex, &pixelFormatDescriptor);
+	SetPixelFormat(hDummyWnd, pixelFormatIndex, &pixelFormatDescriptor);
 	
-	hDummyGLRC = wglCreateContext(hMainWindowDc);
-	wglMakeCurrent(hMainWindowDc, hDummyGLRC);
+	hDummyGLRC = wglCreateContext(hDummyGLRC);
+	wglMakeCurrent(hDummyWndDc, hDummyGLRC);
 	glewInit();
 
-	glGetIntegerv(GL_MAJOR_VERSION, &gl_version[0]);
-	glGetIntegerv(GL_MINOR_VERSION, &gl_version[1]);
+	glGetIntegerv(GL_MAJOR_VERSION, &glVersion[0]);
+	glGetIntegerv(GL_MINOR_VERSION, &glVersion[1]);
 	
 	DEBUG("Avalable GL version %d.%d\n", gl_version[0], gl_version[1] );
 	
 	wglMakeCurrent(NULL, NULL);
 	wglDeleteContext(hDummyGLRC);
-	ReleaseDC(hDummyWindow, hDummyWindowDC);
-	DestroyWindow(hDummyWindow);
-	
-	main_window = CreateWindowEx(0, main_window_class_name, main_window_header,
-		window_style,
-		CW_USEDEFAULT, CW_USEDEFAULT, 
-		areaSizeRect.right, area_size_rect.bottom, NULL, NULL, Instance, NULL);
-		
-	if(main_window == INVALID_HANDLE_VALUE){
-		printf("Instance of window class ""%s"" creation error!\n",main_window_class_name);
-		return 1;
-	}
-	
-	main_window_dc = GetDC(main_window);
-	
-	//* natural gl context creation  *//
+	ReleaseDC(hDummyWnd, hDummyWndDC);
+	DestroyWindow(hDummyWnd);
+	/* wglInit end --------------------------------------------------------- */
+
+
+	/* render context creation --------------------------------------------- */
 	float pfAttribFList[] = {0, 0};
 	int piAttribIList[] = { 
 		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
@@ -423,31 +488,41 @@ int Engine::initRender(){
 	{
 		WGL_CONTEXT_MAJOR_VERSION_ARB, 	gl_version[0],
 		WGL_CONTEXT_MINOR_VERSION_ARB, 	gl_version[1],
-		//WGL_CONTEXT_PROFILE_MASK_ARB,	WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-		//WGL_CONTEXT_PROFILE_MASK_ARB,	WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+		//WGL_CONTEXT_PROFILE_MASK_ARB,	
+		//WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+		//WGL_CONTEXT_PROFILE_MASK_ARB,	
+		//WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
 		0, 0
 	};
+
+	hRenderWnd = getMainWindow();
+	if(hRenderWnd == INVALID_HANDLE_VALUE)
+	{
+		DEBUG("Invalid render window handle\n");
+		return 1;
+	}
 	
-	wglChoosePixelFormatARB(main_window_dc, piAttribIList, pfAttribFList, 1, &pixel_format_index, &nNumFormats);
-	SetPixelFormat(main_window_dc, pixel_format_index, &pfd);
+	hRenderWndDC = GetDC(hRenderWnd);
 	
-	render_context = wglCreateContextAttribsARB(main_window_dc, nullptr, gl_context_attrs);
-	wglMakeCurrent(main_window_dc, render_context);
+	wglChoosePixelFormatARB(hRenderWndDC, piAttribIList, pfAttribFList, 1, 
+		&pixelFormatIndex, &nNumFormats);
+
+	SetPixelFormat(hRenderWndDC, pixelFormatIndex, &pixelFormatDescriptor);
+	
+	hMainGLRC = wglCreateContextAttribsARB(hRenderWndDC, nullptr, 
+		gl_context_attrs);
+
+	glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMask);
+	coreProfile = profileask & GL_CONTEXT_CORE_PROFILE_BIT;
+
+	/* GL info printing */
+	printGLInfo();
+
 	/*==================================================*/
 	
-	print_gl_info();
-	glViewport(0, 0, main_window_width, main_window_height);
-	ReleaseDC(main_window,main_window_dc);
-	
+	wglMakeCurrent(hRenderWndDC, hMainGLRC);
 
-		
-	glGetIntegerv(GL_MAJOR_VERSION, &gl_version[0]);
-	glGetIntegerv(GL_MINOR_VERSION, &gl_version[1]);
-	
-	GLint profile_mask;
-	glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile_mask);
-	gl_core_profile = profile_mask & GL_CONTEXT_CORE_PROFILE_BIT;
-	
+	glViewport(0, 0, getMainWindowWidth(), getMainWindowHeight());
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -455,45 +530,55 @@ int Engine::initRender(){
 	glEnable(GL_MULTISAMPLE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-	if(gl_core_profile){
+	if(coreProfile){
 		
-		//init std vao
-		glGenVertexArrays(1, &gl_vao);
 		glGenBuffers(1, &gl_vertex_buffer);
 		glGenBuffers(1, &gl_element_buffer);
+
+		//init std vao
+		glGenVertexArrays(1, &gl_vao);
 		
 		glBindVertexArray(gl_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, gl_vertex_buffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_element_buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, 			gl_vertex_buffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 	gl_element_buffer);
 		
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(0));
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 
+			5 * sizeof(GLfloat), (void*)(0));
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 
+			5 * sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
 		glEnableVertexAttribArray(1);
 		
 		glBindVertexArray(0);
 		
 		//init color texture vao
 		glGenVertexArrays(1, &gl_vao_color_tex);
-		glBindVertexArray(gl_vao_color_tex);
-		glBindBuffer(GL_ARRAY_BUFFER, gl_vertex_buffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_element_buffer);
 		
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (void*)(0));
+		glBindVertexArray(gl_vao_color_tex);
+		glBindBuffer(GL_ARRAY_BUFFER, 			gl_vertex_buffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 	gl_element_buffer);
+		
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 
+			7 * sizeof(GLfloat), (void*)(0));
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, i
+			7 * sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (void*)(5*sizeof(GLfloat)));
+
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 
+			7 * sizeof(GLfloat), (void*)(5*sizeof(GLfloat)));
 		glEnableVertexAttribArray(2);
 		
 		glBindVertexArray(0);
 		
 		init_shaders();
 		init_default_texture();
-		
 		load_textures();
 	}
 	
+	ReleaseDC(hRenderWnd ,hRenderWndDC);
 	
 	default_color 			= RGB_COLOR(0.5f, 0.5f, 0.5f);
 	collision_model_color	= RGB_COLOR(1.0f, 1.0f, 0.0f);
@@ -504,14 +589,25 @@ int Engine::initRender(){
 	draw_physical_models	= false;
 	draw_ui					= true;
 	
-	return true;
+	return 0;
 }
 
-void ENGINE::free_graphic(){
+int Engine::freeRenderer(){
 	
 }
 
-void ENGINE::render_graphic(){	
+void render(Engine * engine, HDC hdc)
+{
+	wglMakeCurrent(hdc, render_context);
+	
+	engine->render();
+	
+	SwapBuffers(paint_struct.hdc);
+	wglMakeCurrent(NULL, NULL);
+
+};
+
+int Engine::render(){	
 	
 	SCENE* 	scene;
 	CAMERA*	camera;
@@ -651,7 +747,7 @@ void ENGINE::render_graphic(){
 		glmat_scl(glvector2d(camera_proportion * 2.0)) 
 	);
 	
-	gl_core_profile? 
+	coreProfile? 
 		core_profile_reder(): 
 		compatibility_profile_render();
 	
