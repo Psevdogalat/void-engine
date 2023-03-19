@@ -1,27 +1,25 @@
-#ifndef __ENGINE_H__
-#define	__ENGINE_H__
+#ifndef __ENGINE_HPP__
+#define	__ENGINE_HPP__
 
-	#include <geometry.h>
-	#include <collisions.h>
-	#include <physics.h>
-	#include <events.h>
-	#include <graphics.h>
-	#include <platform.h>
-	#include <gui.h>
+	#include <geometry.hpp>
+	#include <collisions.hpp>
+	#include <physics.hpp>
+	#include <events.hpp>
+	#include <graphics.hpp>
+	#include <gui.hpp>
 	
-	#include <std_defines.h>
 	#include <list>	
 
 	namespace VoidEngine{
 		
-		class TIMER{
+		class Timer{
 			protected:
 				double time;
 			
 			public:
 				
-				TIMER();
-				~TIMER();
+				Timer();
+				~Timer();
 				
 				bool condition	();
 				void set		(double );
@@ -29,22 +27,28 @@
 			
 		};
 		
-		class COLLISION_NODE; //for cross reference;
+		class CollisionNode;
 		
 		//objects collision info struct
 		typedef struct{
-			COLLISION_NODE* 				node;
-			enum{TYPE_RAW_GJK,TYPE_EPA} 	type;
-			
-			union{			
-				GJK_SIMPLEX2D	gjk_simplex;
-				EPA_INFO2D		epa_info;
+			enum CollisionType
+			{
+				CT_GJK,
+				CT_EPA
 			};
 			
-		}COLLISION_INFO;
+			CollisionNode * node;
+			CollisionType 	type;
+			
+			union{			
+				GJK2DSimplex	gjk;
+				EPA2DInfo		epa;
+			}data;
+			
+		}CollisionInfo;
 		
 		//collision list type definition
-		typedef std::list<COLLISION_INFO> COLLISIONS_LIST;
+		typedef std::list<CollisionInfo> COLLISIONS_LIST;
 		
 		//default game object type 
 		static const UINT GOT_UNDEFINE 	= 0;
@@ -53,38 +57,41 @@
 		
 		//game object class
 		//base class for all game objects in scenes
-		class GAME_OBJECT{
+		class GameObject{
+			public:
+				typedef unsigned int TypeId;
+				typedef unsigned int ObjectId;
+
 			protected:
 				bool 				visible;
 				
 				char*				name;
-				UINT 				type;
-				UINT				id;
+				TypeId 				type;
+				ObjectId			id;
 				
-				VECTOR2D			position;
-				VECTOR2D			normal;
+				Vector2d			position;
+				Vector2d			direction;
 				
-				GRAPHIC_MODEL*		graphic_model;
-				PHYSICAL_MODEL*		physical_model;
-				COLLISION_NODE*		collision_node;
+				GraphicModel *		graphicModel;
+				PhysicModel *		physicModel;
+				CollisionNode *		collisionNode;
 
 			public:	
 				
-				GAME_OBJECT();
-				GAME_OBJECT(const char*, const VECTOR2D&, const VECTOR2D& );
-				virtual ~GAME_OBJECT();
+				GameObject();
+				GameObject(const char *, const Vector2d &, const Vector2d & );
+				virtual ~GameObject();
 				
-				
-				//virtual GAME_OBJECT* 	new_copy() = 0;
+				//virtual GameObject* 	new_copy() = 0;
 				virtual void compute();
-				virtual void collision(GAME_OBJECT* , const COLLISION_INFO* );
+				virtual void collision(GameObject* , const CollisionInfo* );
 				virtual void spawn();
 				virtual void despawn();
 				
-				const char*		get_name() const;
-				void 			set_name(const char* );
+				const char*		getName() const;
+				void 			setName(const char* );
 				
-				const UINT 		get_type() const;
+				const TypeId	getType() const;
 				
 				void 			set_graphic_model	(GRAPHIC_MODEL* );
 				GRAPHIC_MODEL* 	get_graphic_model	() const;
@@ -99,46 +106,46 @@
 				PHYSICAL_MODEL*	get_physical_model	() const;
 				bool			is_physical			() const;
 				
-				void 			set_position		(const VECTOR2D& );
-				VECTOR2D		get_position		() const;
+				void 			set_position		(const Vector2d& );
+				Vector2d		get_position		() const;
 				
-				void 			set_normal			(const VECTOR2D& );
-				VECTOR2D		get_normal			() const;
+				void 			set_normal			(const Vector2d& );
+				Vector2d		get_normal			() const;
 				
 		};
 		
 		//clss for filtering game_objects
-		class GAME_OBJECT_FILTER{
+		class GameObject_FILTER{
 			protected:
 				static bool default_filt
 				(
-					const std::list<GAME_OBJECT*>& , 
-					const GAME_OBJECT* 
+					const std::list<GameObject*>& , 
+					const GameObject* 
 				);
 				
 			public:
-				std::list<GAME_OBJECT*> pointers;
+				std::list<GameObject*> pointers;
 				bool(* filter_func)
 				(
-					const std::list<GAME_OBJECT*>& , 
-					const GAME_OBJECT* 
+					const std::list<GameObject*>& , 
+					const GameObject* 
 				);
 				
 				bool inverse;
 				
-				bool filt(const GAME_OBJECT* ) const;
-				GAME_OBJECT_FILTER();
-				GAME_OBJECT_FILTER(const GAME_OBJECT_FILTER& );
-				~GAME_OBJECT_FILTER();
+				bool filt(const GameObject* ) const;
+				GameObject_FILTER();
+				GameObject_FILTER(const GameObject_FILTER& );
+				~GameObject_FILTER();
 				
-				GAME_OBJECT_FILTER& operator= (const GAME_OBJECT_FILTER& );
+				GameObject_FILTER& operator= (const GameObject_FILTER& );
 		};
 
 		//class of collision node
 		//collision node used in compute collisions
 		class COLLISION_NODE{
 			protected:
-				GAME_OBJECT*		game_object;
+				GameObject*		game_object;
 				bool 				active;
 				bool 				passive;
 				bool				epa;
@@ -148,7 +155,7 @@
 			public:
 			
 				COLLISION_NODE(
-					GAME_OBJECT*, 
+					GameObject*, 
 					bool, 
 					bool, 
 					bool, 
@@ -160,11 +167,11 @@
 				bool is_passive	() const;
 				bool is_epa		() const;
 				
-				void add_collision	(const COLLISION_INFO& );
+				void add_collision	(const CollisionInfo& );
 				const COLLISIONS_LIST& 	get_collisions	()const;
 				void clear_collisions();
 
-				GAME_OBJECT*			get_game_object		()const;
+				GameObject*			get_game_object		()const;
 				COLLISION_MODEL*		get_collision_model	()const;
 				
 				void 					compute(COLLISION_NODE* );
@@ -179,7 +186,7 @@
 				CAMERA();
 				~CAMERA();
 				
-				void move			(const VECTOR2D& );
+				void move			(const Vector2d& );
 				void set_area		(const VECTOR_RECTANGLE& );
 				void set_constraint (const VECTOR_RECTANGLE& );
 
@@ -187,13 +194,13 @@
 
 		/* raycast info type */
 		typedef struct{
-			const GAME_OBJECT* 	object;
-			VECTOR2D			normal;
+			const GameObject* 	object;
+			Vector2d			normal;
 			double 				distance;		
 		}RAYCAST_OBJ_INFO;
 		
 		/*lists types */
-		typedef std::list<GAME_OBJECT* > 	GAME_OBJECTS_LIST;
+		typedef std::list<GameObject* > 	GameObjectS_LIST;
 		typedef std::list<TIMER*>		 	TIMERS_LIST;
 		typedef std::list<PHYSICAL_MODEL*>	PHYSICS_LIST;
 		typedef std::list<COLLISION_NODE*>	COLLISION_NODE_LIST;
@@ -202,9 +209,9 @@
 		class SCENE{
 			public :
 				CAMERA 				camera;
-				GAME_OBJECTS_LIST	game_objects;
-				GAME_OBJECTS_LIST	spawn_list;
-				GAME_OBJECTS_LIST	despawn_list;
+				GameObjectS_LIST	game_objects;
+				GameObjectS_LIST	spawn_list;
+				GameObjectS_LIST	despawn_list;
 				COLLISION_NODE_LIST	active_collisions;
 				COLLISION_NODE_LIST	passive_collisions;
 				GUIELEMENT*			gui_root = nullptr;
@@ -224,53 +231,53 @@
 				virtual void compute(double );
 				
 				bool raycast(
-					const VECTOR2D&, 
-					const VECTOR2D&, 
-					const GAME_OBJECT_FILTER*, 
+					const Vector2d&, 
+					const Vector2d&, 
+					const GameObject_FILTER*, 
 					RAYCAST_OBJ_INFO* 
 				) const;
 				
 				bool collision_test
 				(
 					const COLLISION_MODEL&		Model, 
-					const GAME_OBJECT_FILTER*	Filter,  
+					const GameObject_FILTER*	Filter,  
 					COLLISIONS_LIST* 			Info_list	
 				) const;
 				
 				bool bouncing_raycast
 				(
-					const VECTOR2D&, const VECTOR2D&, 
-					const GAME_OBJECT_FILTER*, 
-					const GAME_OBJECT_FILTER*, 
+					const Vector2d&, const Vector2d&, 
+					const GameObject_FILTER*, 
+					const GameObject_FILTER*, 
 					UINT, RAYCAST_OBJ_INFO_LIST& 
 				) const;
 				
-				VECTOR2D translate_to_scene	
+				Vector2d translate_to_scene	
 				(
-					const VECTOR2D&, 
+					const Vector2d&, 
 					const CAMERA* 
 				) const;
 				
 				
 				
-				VECTOR2D translate_from_scene	
+				Vector2d translate_from_scene	
 				(
-					const VECTOR2D&, 
+					const Vector2d&, 
 					const CAMERA* 
 				) const;
 				
-				VECTOR2D translate_from_scene(const VECTOR2D& ) const;
-				VECTOR2D translate_to_scene	 (const VECTOR2D& ) const;
+				Vector2d translate_from_scene(const Vector2d& ) const;
+				Vector2d translate_to_scene	 (const Vector2d& ) const;
 
-                GAME_OBJECT* 
+                GameObject* 
                 spawn
                 (
-                    GAME_OBJECT* Object,
-                    const VECTOR2D& Position,
-                    const VECTOR2D& Normal
+                    GameObject* Object,
+                    const Vector2d& Position,
+                    const Vector2d& Normal
                 );
 
-                void despawn(GAME_OBJECT* Object);    
+                void despawn(GameObject* Object);    
 
 		};	
 	

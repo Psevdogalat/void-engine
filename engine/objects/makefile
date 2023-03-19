@@ -10,8 +10,9 @@ all: 	engine.o
 
 clean:	
 	rm *.o
-	
-windows.o:$(SRC)/windows.cpp $(INCLUDE)/engine_platform.h $(INCLUDE)/platform.h
+
+
+windows.o:$(SRC)/windows.cpp
 	gcc -x c++ $(DBGFLG) $(OPTKEYS) $< -I$(INCLUDE) -c -o $@
 
 core.o: $(SRC)/core.cpp $(INCLUDE)/engine.h $(INCLUDE)/engine_platform.h

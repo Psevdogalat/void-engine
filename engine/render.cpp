@@ -1,5 +1,6 @@
 #include <engine.hpp>
-#include <graphics.h>
+#include <graphics.hpp>
+#include <glSupport.hpp>
 #include <memory_manage.h>
 #include <png_images.h>
 #include <gui.h>
@@ -21,87 +22,7 @@
 
 using namespace VoidEngine;
 
-HWINDOW createMainWindow(UINT width, UINT height);
 
-/* GL raw structs */
-typedef struct {
-	GLfloat x;
-	GLfloat y;
-}GLVECTOR2D;
-
-typedef struct {
-	GLfloat cells[3][3];
-}GLMATRIX33;
-
-typedef struct{
-	GLfloat r;
-	GLfloat g;
-	GLfloat b;
-}GLRGB;
-
-typedef struct{
-	GLVECTOR2D 	coord;
-	GLRGB		color;
-}GLVATTR_DEF;
-
-typedef struct{
-	GLVECTOR2D 	coord;
-	GLRGB		color;
-	GLVECTOR2D	uv;
-}GLVATTR_COT; 
-
-typedef struct{
-	GLVECTOR2D pos;
-	GLVECTOR2D nor;
-	GLVECTOR2D scl;
-}GLTRANS;
-
-
-#define __GLFASTCALL__ inline
-
-__GLFASTCALL__ static GLVECTOR2D 	
-glvector2d	
-(const VECTOR2D&  );
-
-__GLFASTCALL__ static GLRGB			
-glrgb		
-(const RGB_COLOR& );
-
-__GLFASTCALL__ static GLRGB 		
-glrgb_blend	
-(const GLRGB&, const GLRGB& );
-
-__GLFASTCALL__ static GLVATTR_DEF 	
-glvattr_def	
-(const VECTOR2D& , const RGB_COLOR& );
-
-__GLFASTCALL__ static GLVATTR_COT 	
-glvattr_cot	
-(const VECTOR2D& , const RGB_COLOR& , const VECTOR2D& );
-
-__GLFASTCALL__ static GLMATRIX33	
-glmat_rot	
-(const GLVECTOR2D& );
-
-__GLFASTCALL__ static GLMATRIX33	
-glmat_scl	
-(const GLVECTOR2D& );
-
-__GLFASTCALL__ static GLMATRIX33	
-glmat_trp	
-(const GLVECTOR2D& );
-
-__GLFASTCALL__ static GLMATRIX33	
-operator*	
-(const GLMATRIX33&, const GLMATRIX33& );
-
-__GLFASTCALL__ static GLVECTOR2D	
-operator*	
-(const GLMATRIX33&, const GLVECTOR2D& );
-
-__GLFASTCALL__ static GLMATRIX33	
-glmat_trans	
-(const GLVECTOR2D&, const GLVECTOR2D&, const GLVECTOR2D& );
 
 /* render control ============================================================*/
 static bool 			coreProfile;

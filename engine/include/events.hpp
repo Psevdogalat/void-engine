@@ -16,9 +16,9 @@
 		#define EV_MOUSE_MKEY_UP	0x000D
 	
 		typedef struct{
-			unsigned char 	key_down;
-			unsigned int 	key_code;
-			unsigned int 	control_key_state;
+			bool 			down;
+			unsigned int 	code;
+			unsigned int 	controlState;
 		}KeyEvent;
 		
 		

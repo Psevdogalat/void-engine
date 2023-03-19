@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <engine.hpp>
+#include <platform.hpp>
 #include <debug.h>
 
 static struct{
@@ -13,21 +14,36 @@ static struct{
 
 using namespace VoidEngine;
 
-static const UINT 		iResolution 	= 1;
-static const UINT 		averFrames 		= 10;	
-static const double 	frameLock 		= 30.0;
+static const UINT 	iResolution	= 1;
+static const double frameLock 	= 30.0;
 
-static HWND				hMainWindow = INVALID_HANDLE_VALUE;
-static const LPCSTR 	mainWindowClassName	= "voidEngineMainWindow";
-static const DWORD		mainWindowStyle = WS_CAPTION | WS_SYSMENU;
+static HWND			hMainWindow = INVALID_HANDLE_VALUE;
+static const LPCSTR mainWindowClassName	= "voidEngineMainWindow";
+static const DWORD	mainWindowStyle = WS_CAPTION | WS_SYSMENU;
 
-static UINT 			mainWindowWidth;
-static UINT 			mainWindowHeight;
+LRESULT CALLBACK mainWindowProcedure(HWND wnd, UINT msg, 
+	WPARAM wParam, LPARAM lParam)
+{
+	PAINTSTRUCT paintStruct;
+	
+	switch(Message){
+		case WM_CLOSE:
+			PostQuitMessage(0);
+			
+		case WM_PAINT:
+			BeginPaint(wnd, &paintStruct);
+			render((Engine *)wParam, paintStruct.hdc);
+			EndPaint(wnd, &paintStruct);
+			
+		break;
+		default:
+			return DefWindowProc(wnd, msg, w, L_param);
+	}
+	return 0;
+}
 
-LRESULT CALLBACK mainWindowProcedure(HWND, UINT, WPARAM, LPARAM);
-
-void dispatchEngineMessage(Engine * engine, const MSG * winMessage);
-
+extern "C" {
+/* extern "C" start */
 UINT getMainWindowWidth()
 {
 	return resolutions[iResolution].width;
@@ -73,6 +89,107 @@ HWND getMainWindow()
 	return hMainWindow;
 };
 
+Vector2d transformMouse(UINT x, UINT y, UINT width, UINT height)
+{
+	return vector2d(
+		(2.0 * (double)x / (double)width) - 1.0,
+		(2.0 * (double)(height - y) / (double)height) - 1.0
+	);
+};
+
+/* extern "C" end*/
+}
+
+void dispatchEngineMessage(Engine * engine, const MSG winMessage)
+{
+		VoidEngine::EVENT_MSG event;
+		ZeroMemory(&event,sizeof(event));
+		
+		switch(winMessager->message){
+			case WM_KEYDOWN:
+			case WM_KEYUP:
+				event.id = EV_KEY_PRESS;
+
+				if(winMessage->message == WM_KEYDOWN)	
+					event.key.down = true;
+				
+				event.key.code = winMessage->wParam; 
+				engine->handleEvent(event);
+			break;
+			case WM_MOUSEWHEEL:
+				event.id = EV_MOUSE_WHEEL;
+				event.mouse.delta = GET_WHEEL_DELTA_WPARAM(winMessage->wParam);
+				event.mouse.coord = transformMouse(
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					getMainWindowWidth(), getMainWindowWidth()
+				);
+				engine->handleEvent(event);
+			break;
+			case WM_MOUSEMOVE:
+				event.id = EV_MOUSE_MOVE;
+				event.mouse.coord = transformMouse(
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					getMainWindowWidth(), getMainWindowWidth()
+				);
+				engine->handleEvent(event);
+			break;
+			case WM_MBUTTONDOWN:
+				event.id = EV_MOUSE_MKEY_DOWN;
+				event.mouse.coord = transformMouse(
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					getMainWindowWidth(), getMainWindowWidth()
+				);
+				engine->handleEvent(event);
+			break;
+			case WM_MBUTTONUP:
+				event.id = EV_MOUSE_MKEY_UP;
+				event.mouse.coord = transformMouse(
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					getMainWindowWidth(), getMainWindowWidth()
+				);
+				engine->handleEvent(event);
+			break;
+			case WM_LBUTTONDOWN:
+				event.id = EV_MOUSE_LKEY_DOWN;
+				event.mouse.coord = transformMouse(
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					getMainWindowWidth(), getMainWindowWidth()
+				);
+				engine->handleEvent(event);
+			break;
+			case WM_LBUTTONUP:
+				event.id = EV_MOUSE_LKEY_UP;
+				event.mouse.coord = transformMouse(
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					getMainWindowWidth(), getMainWindowWidth()
+				);
+				engine->handleEvent(event);
+			break;
+			case WM_RBUTTONDOWN:
+				event.id = EV_MOUSE_RKEY_DOWN;
+				event.mouse.coord = transformMouse(
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					getMainWindowWidth(), getMainWindowWidth()
+				);
+				engine->handleEvent(event);
+			break;
+			case WM_RBUTTONUP:
+				event.id = EV_MOUSE_RKEY_UP;
+				event.mouse.coord = transformMouse(
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					getMainWindowWidth(), getMainWindowWidth()
+				);
+				engine->handleEvent(event);
+			break;
+			case WM_TIMER:
+				engine->calculate();
+				if(hMainWindow != INVALID_HANDLE_VALUE)
+					InvalidateRect(hMainWindow, nullptr, false);
+
+			break;
+		};
+		
+};
 
 int Engine::initPlatform()
 {
@@ -115,6 +232,10 @@ int Engine::loopPlatform()
 
 	while(GetMessage(&message, NULL, 0, 0)){
 		TranslateMessage(&message);
+		
+		if(message->message == WM_PAINT)
+			message->wParam = (WPARAM)this;
+
 		DispatchMessage(&message);
 		dispatchEngineMessage(this, message);
 	}
@@ -131,117 +252,6 @@ int Engine::freePlatform()
 	
 };
 	
-
-LRESULT CALLBACK mainWindowProcedure(HWND wnd, UINT msg, 
-	WPARAM wParam, LPARAM lParam)
-{
-	PAINTSTRUCT paintStruct;
-	
-	switch(Message){
-		case WM_CLOSE:
-			PostQuitMessage(0);
-			
-		case WM_PAINT:
-			engine = ;
-			BeginPaint(wnd, &paintStruct);
-			render((Engine *)wParam, paintStruct.hdc);
-			EndPaint(wnd, &paintStruct);
-			
-		break;
-		default:
-			return DefWindowProc(wnd, msg, w, L_param);
-	}
-	return 0;
-}
-
-
-double transformMouseX(UINT x, UINT width)
-{
-	return (2.0 * (double)x / (double)width) - 1.0;
-}
-
-double transformMouseY(UINT y, UINT height)
-{
-	return (2.0 * (double)(height - y) / (double)height) - 1.0;
-}
-
-void dispatchEngineMessage(Engine * engine, const MSG winMessage)
-{
-		VoidEngine::EVENT_MSG event;
-		VoidEngine::EVENT_KEY_RECORD& 	key   = event.event_record.key;
-		VoidEngine::EVENT_MOUSE_RECORD&	mouse = event.event_record.mouse;
-
-		ZeroMemory(&event,sizeof(event));
-		
-		switch(winMessager->message){
-			case WM_KEYDOWN:
-			case WM_KEYUP:
-				event.event = EV_KEY_PRESS;
-				if(winMessage->message == WM_KEYDOWN)	
-					key.key_down = true;
-				
-				key.key_code = winMessage->wParam; 
-				engine->handleEvent(event);
-			break;
-			case WM_MOUSEWHEEL:
-				event.event = EV_MOUSE_WHEEL;
-				mouse.delta = GET_WHEEL_DELTA_WPARAM(winMessage->wParam);
-				mouse.x     = transform_mouse_x(LOWORD(winMessage->lParam));
-				mouse.y		= transform_mouse_y(HIWORD(winMessage->lParam));
-				engine->handleEvent(event);
-			break;
-			case WM_MOUSEMOVE:
-				event.event = EV_MOUSE_MOVE;
-				mouse.x     = transform_mouse_x(LOWORD(winMessage->lParam));
-				mouse.y		= transform_mouse_y(HIWORD(winMessage->lParam));
-				engine->handleEvent(event);
-			break;
-			case WM_MBUTTONDOWN:
-				event.event = EV_MOUSE_MKEY_DOWN;
-				mouse.x     = transform_mouse_x(LOWORD(winMessage->lParam));
-				mouse.y		= transform_mouse_y(HIWORD(winMessage->lParam));
-				engine->handleEvent(event);
-			break;
-			case WM_MBUTTONUP:
-				engine_event.event = EV_MOUSE_MKEY_UP;
-				mouse.x     = transform_mouse_x(LOWORD(winMessage->lParam));
-				mouse.y		= transform_mouse_y(HIWORD(winMessage->lParam));
-				engine->handleEvent(event);
-			break;
-			case WM_LBUTTONDOWN:
-				engine_event.event = EV_MOUSE_LKEY_DOWN;
-				mouse.x     = transform_mouse_x(LOWORD(winMessage->lParam));
-				mouse.y		= transform_mouse_y(HIWORD(winMessage->lParam));
-				engine->handleEvent(event);
-			break;
-			case WM_LBUTTONUP:
-				engine_event.event = EV_MOUSE_LKEY_UP;
-				mouse.x     = transform_mouse_x(LOWORD(winMessage->lParam));
-				mouse.y		= transform_mouse_y(HIWORD(winMessage->lParam));
-				engine->handleEvent(event);
-			break;
-			case WM_RBUTTONDOWN:
-				engine_event.event = EV_MOUSE_RKEY_DOWN;
-				mouse.x     = transform_mouse_x(LOWORD(winMessage->lParam));
-				mouse.y		= transform_mouse_y(HIWORD(winMessage->lParam));
-				engine->handleEvent(event);
-			break;
-			case WM_RBUTTONUP:
-				engine_event.event = EV_MOUSE_RKEY_UP;
-				mouse.x     = transform_mouse_x(LOWORD(winMessage->lParam));
-				mouse.y		= transform_mouse_y(HIWORD(winMessage->lParam));
-				engine->handleEvent(event);
-			break;
-			case WM_TIMER:
-				engine->calculate();
-				if(hMainWindow != INVALID_HANDLE_VALUE)
-					InvalidateRect(hMainWindow, nullptr, false);
-
-			break;
-		};
-		
-};
-
 bool Engine::getAbsolutePath(std::string& pathAbsolute, 
 	const std::string& path)
 {
