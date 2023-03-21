@@ -2,7 +2,7 @@ INCLUDE = ../include
 SRC		= ..
 
 OPTKEYS = -o0
-DBGFLG	= -g
+DBGFLG	= -g -fmax-errors=5
 
 .PHONY: all clean
 

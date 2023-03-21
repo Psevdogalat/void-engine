@@ -84,11 +84,11 @@
 	
 	class Transformation2d: public OrientedObject2d, public ScalableObject2d{
 		public:
-		Transformation();
-		Transformation(const Vector2d &, const Vector2d &, 
+		Transformation2d();
+		Transformation2d(const Vector2d &, const Vector2d &, 
 			const Vector2d &);
-		Transformation(const Transformation & );
-		~Transformation();
+		Transformation2d(const Transformation2d & );
+		~Transformation2d();
 		
 		void setTransformation(const Transformation2d &);
 		void setTransformation(const Vector2d &, const Vector2d &, 

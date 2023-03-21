@@ -31,7 +31,7 @@
 			
 		};
 		
-		class GraphicObject : public Transformation2d, public VectorFormater2,
+		class GraphicObject : public Transformation2d, public VectorFormater2
 		{
 			public:
 			enum Type
@@ -253,6 +253,10 @@
 		};
 		
 		class GraphicLineGroup : public GraphicObject{
+			public:
+			typedef std::list<GraphicLine *>::const_iterator const_iterator;				
+			typedef std::list<GraphicLine *>::iterator iterator;				
+
 			private:
 			std::list<GraphicLine *> lines;
 			
@@ -279,6 +283,12 @@
 		};
 		
 		class GraphicRectangleGroup : public GraphicObject{
+			public:
+			typedef std::list<GraphicRectangle *>::const_iterator 
+				const_iterator;				
+			typedef std::list<GraphicRectangle *>::iterator 
+				iterator;				
+
 			private:
 			std::list<GraphicRectangle *> rectangles;
 			

@@ -7,7 +7,7 @@ extern "C" {
 
 typedef struct{
 	double values[3][3];
-}matrix33;
+}Matrix33;
 	
 
 

@@ -9,7 +9,7 @@ extern "C" {
 	typedef struct{
 		double	x;
 		double  y;
-	}vector2d;
+	}Vector2d;
 	
 	
 

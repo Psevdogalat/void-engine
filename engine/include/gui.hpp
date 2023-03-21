@@ -8,26 +8,26 @@
 
 	namespace VoidEngine{
 		
-		class GuiElement : public Transformation2d, 
-			public std::list<GuiElement*>
+		class GuiObject : public Transformation2d, 
+			public std::list<GuiObject*>
 		{
 			private:
 				bool visible;
 				bool enable;
-				GRAPHIC_MODEL* 		gmodel;
-				COLLISION_MODEL*	smodel;
+				GraphicModel * gmodel;
+				CollisionModel * smodel;
 				
 			
 			public:
-				GuiElement();
-				GuiElement(const GuiElement& );
-				~GuiElement();
+				GuiObject();
+				GuiObject(const GuiObject &);
+				~GuiObject();
 
-				virtual GuiElement * cloneGuiElement() const;
-				virtual void freeGuiElement();
+				virtual GuiObject * cloneGuiObject() const = 0;
+				virtual void freeGuiObject() = 0;
 					
-				const GRAPHIC_MODEL * get_gmodel	() const;
-				const COLLISION_MODEL * get_smodel	() const;
+				const GraphicModel * getGmodel	() const;
+				const CollisionModel * getSmodel	() const;
 				
 				void setVisible(bool );
 				void setEnable(bool );
@@ -35,28 +35,6 @@
 				bool isEnable() const;
 		};
 		
-		class GUI_SPRITE: public GuiElement{
-			protected:
-				GELEMENT_SPRITE* 	sprite;
-				double 				width;
-				double 				height;
-			
-			public:
-								GUI_SPRITE	();
-								GUI_SPRITE	(const GUI_SPRITE& );
-								~GUI_SPRITE	();
-				
-				void 			set_width	(double );
-				void 			set_height	(double	);
-				void 			set_texture (const std::string&, UINT, UINT );
-				void 			set_window	(UINT, UINT, UINT, UINT);
-				
-				GuiElement*		clone		() const;
-				double			get_width	() const;
-				double 			get_height	() const;
-				
-		};
-
 	}
 
 #endif

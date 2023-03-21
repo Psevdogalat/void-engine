@@ -23,5 +23,59 @@
 		CollisionModel & operator= (const CollisionModel &);
 	};
 
+	class CollisionNode;
+	class GameObject;
+
+	typedef struct
+	{
+		enum CollisionType
+		{
+			CT_GJK,
+			CT_EPA,
+			CT_RAY
+		};
 		
+		CollisionType type;
+		GameObject * object;
+		CollisionNode * node;
+		
+		union{			
+			GJKSimplex2	 gjk;
+			EPAInfo2	 epa;
+			RaycastInfo2 ray;
+		};
+		
+	}CollisionInfo;
+
+	class CollisionNode
+	{
+		public:
+		typedef std::list<CollisionInfo> CollisionsList;	
+
+		private:
+		GameObject *		object;
+		bool 				active;
+		bool 				passive;
+		bool				epa;
+		CollisionModel *	model;
+		CollisionsList		collisions;
+			
+		public:
+		CollisionNode(GameObject *, bool, bool, bool, 
+			CollisionModel *);
+			
+		~CollisionNode();
+		
+		bool isActive() const;
+		bool isPassive() const;
+		bool isEpa() const;
+		
+		CollisionsList &  getCollisions()const;
+		GameObject *	  getGameObject()const;
+		CollisionModel *  getCollisionModel()const;
+		
+		bool imprint(CollisionNode * );
+			
+	};
+
 #endif

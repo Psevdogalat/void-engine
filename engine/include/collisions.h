@@ -7,7 +7,7 @@ extern "C"{
 
 	/* Gilbert — Johnson — Keerthi algorithm */
 	/* 2D simplex for GJK algorithm */
-	typedef Vector2d[3] GJKSimplex2;
+	typedef Vector2d GJKSimplex2[3];
 	
 	/* gjk collision check function betwen two convex shapes 		*/
 	/* given by arrays of vertices. the function is not 			*/

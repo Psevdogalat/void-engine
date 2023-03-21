@@ -120,7 +120,7 @@ void dispatchEngineMessage(Engine * engine, const MSG winMessage)
 				event.id = EV_MOUSE_WHEEL;
 				event.mouse.delta = GET_WHEEL_DELTA_WPARAM(winMessage->wParam);
 				event.mouse.coord = transformMouse(
-					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam),
 					getMainWindowWidth(), getMainWindowWidth()
 				);
 				engine->handleEvent(event);
@@ -128,7 +128,7 @@ void dispatchEngineMessage(Engine * engine, const MSG winMessage)
 			case WM_MOUSEMOVE:
 				event.id = EV_MOUSE_MOVE;
 				event.mouse.coord = transformMouse(
-					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam),
 					getMainWindowWidth(), getMainWindowWidth()
 				);
 				engine->handleEvent(event);
@@ -136,7 +136,7 @@ void dispatchEngineMessage(Engine * engine, const MSG winMessage)
 			case WM_MBUTTONDOWN:
 				event.id = EV_MOUSE_MKEY_DOWN;
 				event.mouse.coord = transformMouse(
-					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam),
 					getMainWindowWidth(), getMainWindowWidth()
 				);
 				engine->handleEvent(event);
@@ -144,7 +144,7 @@ void dispatchEngineMessage(Engine * engine, const MSG winMessage)
 			case WM_MBUTTONUP:
 				event.id = EV_MOUSE_MKEY_UP;
 				event.mouse.coord = transformMouse(
-					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam),
 					getMainWindowWidth(), getMainWindowWidth()
 				);
 				engine->handleEvent(event);
@@ -152,7 +152,7 @@ void dispatchEngineMessage(Engine * engine, const MSG winMessage)
 			case WM_LBUTTONDOWN:
 				event.id = EV_MOUSE_LKEY_DOWN;
 				event.mouse.coord = transformMouse(
-					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam),
 					getMainWindowWidth(), getMainWindowWidth()
 				);
 				engine->handleEvent(event);
@@ -160,7 +160,7 @@ void dispatchEngineMessage(Engine * engine, const MSG winMessage)
 			case WM_LBUTTONUP:
 				event.id = EV_MOUSE_LKEY_UP;
 				event.mouse.coord = transformMouse(
-					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam),
 					getMainWindowWidth(), getMainWindowWidth()
 				);
 				engine->handleEvent(event);
@@ -168,7 +168,7 @@ void dispatchEngineMessage(Engine * engine, const MSG winMessage)
 			case WM_RBUTTONDOWN:
 				event.id = EV_MOUSE_RKEY_DOWN;
 				event.mouse.coord = transformMouse(
-					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam),
 					getMainWindowWidth(), getMainWindowWidth()
 				);
 				engine->handleEvent(event);
@@ -176,7 +176,7 @@ void dispatchEngineMessage(Engine * engine, const MSG winMessage)
 			case WM_RBUTTONUP:
 				event.id = EV_MOUSE_RKEY_UP;
 				event.mouse.coord = transformMouse(
-					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam,
+					LOWORD(winMessage->lParam), HIWORD(winMessage->lParam),
 					getMainWindowWidth(), getMainWindowWidth()
 				);
 				engine->handleEvent(event);
