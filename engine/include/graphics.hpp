@@ -7,59 +7,36 @@
 	
 	namespace VoidEngine{
 		
-		class RgbColor{
+		class RGBColor{
 		public:
 			float r;
 			float g;
 			float b;
-			RgbColor();
-			RgbColor(float, float, float);
-			RgbColor(const RgbColor & );
-			RgbColor & operator= (const RgbColor & );
+			RGBColor();
+			RGBColor(float, float, float);
+			RGBColor(const RGBColor & );
+			RGBColor & operator= (const RGBColor & );
 		};
 		
 		class RGBObject{
 			private:
-			RgbColor color;
+			RGBColor color;
 				
 			public:
 			RGBObject();
 			RGBObject(const RGBObject &);
 			~RGBObject();
-			void setColor(const RgbColor &);
-			const RgbColor & getColor() const;
+			void setColor(const RGBColor &);
+			const RGBColor & getColor() const;
 			
 		};
 		
-		
-		/*
-		class MULTYRGBObject{
-			protected:
-				UINT		colors_n;
-				RgbColor* 	colors
-			
-			public:
-				MULTYCOLOR();
-				~MULTYCOLOR();
-				UINT 				get_color_quantity	();
-				const RgbColor*	get_colors			();
-				void 				set_colors			(const RgbColor* );
-				const RgbColor*	get_color			(UINT );
-				void 				set_color			(const RgbColor&, UINT);
-			
-		};
-		*/
-		
-		#define GLAYERS_NUM				8
-		#define GLAYER_DEFAULT			4
-		
-		class GraphicObject : public Transformation2d, public RGBObject{
+		class GraphicObject : public Transformation2d, public VectorFormater2,
+		{
 			public:
 			enum Type
 			{
-				T_VOID,
 				T_GROUP,
-				T_POINT,
 				T_LINE,
 				T_POLYLINE,
 				T_SHAPE,
@@ -76,16 +53,49 @@
 			public:
 			bool visible;
 
-			GraphicObject();
-			virtual	~GraphicObject(){};
+			GraphicObject(Type );
+			~GraphicObject();
 
 			virtual GraphicObject * cloneGraphicObject() const = 0;
+			virtual void freeGraphicObject() = 0;
 				
 			Type getType() const;
-			GraphicObject &	operator= (const GraphicObject &);
-				 
+		};
+	
+		class BorderedGraphicObject
+		{
+			private:
+			bool borderEnable;
+			RGBColor borderColor;
+		
+			public:
+			BorderedGraphicObject();
+			BorderedGraphicObject(const BorderedGraphicObject &);
+			~BorderedGraphicObject();
+
+			bool isBorderEnable() const;
+			const RGBColor & getBorderColor() const;
+			void setBorder(bool );
+			void setBorderColor(const RGBColor &);
 		};
 		
+		class SolidGraphicObject
+		{
+			private:
+			bool solidEnable;
+			RGBColor fillColor;
+			
+			public:
+			SolidGraphicObject();
+			SolidGraphicObject(const SolidGraphicObject &);
+			~SolidGraphicObject();
+			
+			bool isSolid() const;
+			const RGBColor & getFillColor() const;	
+			void setSolid(bool );
+			void setFillColor(const RGBColor &);	
+		};
+	
 		class GraphicGroup : public GraphicObject
         {
 			public:
@@ -100,8 +110,16 @@
 			GraphicGroup(const GraphicGroup &);
 			~GraphicGroup();
 
+			/*GraphicObject interface*/
 			GraphicObject * cloneGraphicObject() const;
+			void freeGraphicObject();
 
+			/*VectorFormater2 interface*/
+			void format(VectorArray2 &) const;
+			void format(Vector2d *, size_t) const;
+			size_t getFormatSize() const;
+
+			/*Truncated list interface*/
 			size_t size() const;
 			const_iterator begin() const;
 			const_iterator end() const;
@@ -111,169 +129,190 @@
 		};
 		
 		class GraphicPolyline : public GraphicObject, 
-			public Vector2dBuffer
+			public VectorArray2, public RGBObject
 		{
 			public:
 			GraphicPolyline();
 			GraphicPolyline(const GraphicPolyline & );
 			~GraphicPolyline();
 
-			GraphicObject * cloneGraphicObject() const;	
+			/*GraphicObject interface*/
+			GraphicObject * cloneGraphicObject() const;
+			void freeGraphicObject();
+
+			/*VectorFormater2 interface*/
+			void format(VectorArray2 &) const;
+			void format(Vector2d *, size_t) const;
+			size_t getFormatSize() const;
 		};
 		
-		class GraphicShape : public GraphicObject, 
-			public Vector2dBuffer
+		class GraphicShape : public GraphicObject, public VectorArray2, 
+			public BorderedGraphicObject, public SolidGraphicObject
 		{
 			public:
 			GraphicShape();
 			GraphicShape(const GraphicShape & );
 			~GraphicShape();
 
-			GraphicObject *	cloneGraphicObject() const;	
+			/*GraphicObject interface*/
+			GraphicObject * cloneGraphicObject() const;
+			void freeGraphicObject();
+
+			/*VectorFormater2 interface*/
+			void format(VectorArray2 &) const;
+			void format(Vector2d *, size_t) const;
+			size_t getFormatSize() const;
 		};
 		
-		class GraphicLine : public GraphicObject
-			public Vector2dBuffer
+		class GraphicLine : public GraphicObject, public Line, 
+			public RGBObject
 		{
 			public:
 			GraphicLine();
 			GraphicLine(const GraphicLine & );
 			~GraphicLine();
-			
-			GraphicObject *	cloneGraphicObject() const;
 
-			void setSpecs(double, double );
-			void setSpecs(const Vector2d &,  const Vector2d & );
+			/*GraphicObject interface*/
+			GraphicObject * cloneGraphicObject() const;
+			void freeGraphicObject();
+
+			/*VectorFormater2 interface*/
+			void format(VectorArray2 &) const;
+			void format(Vector2d *, size_t) const;
+			size_t getFormatSize() const;
 		};
 		
 		
-		class GraphicRectangle : public GraphicObject, 
-			public Vector2dBuffer
+		class GraphicRectangle : public GraphicObject, public Rectangle,
+			public BorderedGraphicObject, public SolidGraphicObject
 		{
-			private:
-				bool solid;
-			
 			public:
 			GraphicRectangle();
 			GraphicRectangle(const GraphicRectangle & );
 			~GraphicRectangle();
 			
-			GraphicObject *	cloneGraphicObject() const;		
-			
-			void setSpecs(double, double );
-			void setSolid(bool );
-			bool isSolid() const;
+			/*GraphicObject interface*/
+			GraphicObject * cloneGraphicObject() const;
+			void freeGraphicObject();
+
+			/*VectorFormater2 interface*/
+			void format(VectorArray2 &) const;
+			void format(Vector2d *, size_t) const;
+			size_t getFormatSize() const;
+
 		};
 		
-		class GraphicCircle : public GraphicObject,
-			public Vector2dBuffer
+		class GraphicCircle : public GraphicObject, public Circle,
+			public BorderedGraphicObject, public SolidGraphicObject
 		{
 			public:
 			GraphicCircle();
 			GraphicCircle(const GraphicCircle & );
 			~GraphicCircle();
 
-			GraphicObject *	cloneGraphicObject() const;		
-		
-			void setSpecs(double, unsigned int );
+			/*GraphicObject interface*/
+			GraphicObject * cloneGraphicObject() const;
+			void freeGraphicObject();
+
+			/*VectorFormater2 interface*/
+			void format(VectorArray2 &) const;
+			void format(Vector2d *, size_t) const;
+			size_t getFormatSize() const;
 		};
 		
 
-		class GraphicSprite : public GraphicObject,
-			public Vector2dBuffer
+		class GraphicSprite : public GraphicObject, public Rectangle
 		{
 			private:
-				std::string textureStrId;
-				Transformation2d textureWindow;
+			std::string textureStrId;
+			Transformation2d textureWindowTransformation;
+			Rectangle textureWindow;
 
 			public:
-				GraphicSprite();
-				GraphicSprite(const GraphicSprite & );
-				~GraphicSprite();
+			GraphicSprite();
+			GraphicSprite(const GraphicSprite & );
+			~GraphicSprite();
 
-				GraphicObject * cloneGraphicObject() const;	
-				
-				void setSpecs(double, double);
-				void setTexture(const std::string &, double, double);
-				void setTextureWindow();
-				
-				UINT				get_tcoords_n		() const;
-				const Vector2d*		get_tcoords			() const;
-				UINT 				get_vertices_n		() const;
-				const Vector2d* 	get_vertices		() const;
-				const std::string&  get_texture_name	() const;
-			
+			/*GraphicObject interface*/
+			GraphicObject * cloneGraphicObject() const;
+			void freeGraphicObject();
+
+			/*VectorFormater2 interface*/
+			void format(VectorArray2 &) const;
+			void format(Vector2d *, size_t) const;
+			size_t getFormatSize() const;
+
+		
+			const std::string & getTextureStrId();
+			const Rectangle & getTextureWindow();
+			const Transformation2d & getTextureWindowTransformation();
+
+			void setTextureStrId(const std::string &);
+			void setTextureWindow(const Rectangle &);
+			void setTextureWindowTransformation(const Transformation2d &);
 		};
 		
-		class GraphicLineGROUP : public GraphicObject{
-			protected:
-				typedef std::list<GraphicLine*> GEL_LINE_PLIST;
-				GEL_LINE_PLIST lines;
+		class GraphicLineGroup : public GraphicObject{
+			private:
+			std::list<GraphicLine *> lines;
 			
 			public:
-				GraphicLineGROUP	();
-				GraphicLineGROUP	(const GraphicLineGROUP& );
-				~GraphicLineGROUP	();
-				
-				GraphicObject* 		clone		() const;	
-				
-				typedef GEL_LINE_PLIST::iterator iterator; 
-				typedef GEL_LINE_PLIST::const_iterator const_iterator;
-				
-				size_t 			size		() const;
-				const_iterator 	begin		() const;
-				const_iterator 	end			() const;
-				void 			push_back	(GraphicLine* );
-                void            clear       ();
+			GraphicLineGroup();
+			GraphicLineGroup(const GraphicLineGroup &);
+			~GraphicLineGroup();
+
+			/*GraphicObject interface*/
+			GraphicObject * cloneGraphicObject() const;
+			void freeGraphicObject();
+
+			/*VectorFormater2 interface*/
+			void format(VectorArray2 &) const;
+			void format(Vector2d *, size_t) const;
+			size_t getFormatSize() const;
+
+			/*Truncated list interface*/
+			size_t size() const;
+			const_iterator begin() const;
+			const_iterator end() const;
+			void push_back(GraphicLine *);
+			void clear();
 		};
 		
-		class GraphicRectangleGROUP : public GraphicObject{
-			protected:
-				typedef std::list<GraphicRectangle*> GEL_RECT_PLIST;
-				GEL_RECT_PLIST 	rects;
-				bool 			solid;
+		class GraphicRectangleGroup : public GraphicObject{
+			private:
+			std::list<GraphicRectangle *> rectangles;
 			
 			public:
-				GraphicRectangleGROUP	();
-				GraphicRectangleGROUP	(const GraphicRectangleGROUP& );
-				~GraphicRectangleGROUP	();
-				
-				GraphicObject* 		clone		() const;	
-				
-				typedef GEL_RECT_PLIST::iterator 		iterator; 
-				typedef GEL_RECT_PLIST::const_iterator 	const_iterator;
-				
-				size_t 			size		() const;
-				const_iterator 	begin		() const;
-				const_iterator 	end			() const;
-				void 			push_back	(GraphicRectangle* );
-				
-				void 			set_solid	(bool );
-				bool			is_solid	() const;
-                void            clear       ();
+			GraphicRectangleGroup();
+			GraphicRectangleGroup(const GraphicRectangleGroup& );
+			~GraphicRectangleGroup();
+			
+			/*GraphicObject interface*/
+			GraphicObject * cloneGraphicObject() const;
+			void freeGraphicObject();
+
+			/*VectorFormater2 interface*/
+			void format(VectorArray2 &) const;
+			void format(Vector2d *, size_t) const;
+			size_t getFormatSize() const;
+
+			/*Truncated list interface*/
+			size_t size() const;
+			const_iterator begin() const;
+			const_iterator end() const;
+			void push_back(GraphicRectangle *);
+			void clear();
+
 		};
 		
-		class GRAPHIC_MODEL: public GraphicGroup{
-			protected:
-				UINT 	layer;
-			
+		class GraphicModel: public GraphicGroup{
 			public:
-							GRAPHIC_MODEL	();
-							GRAPHIC_MODEL	(const GRAPHIC_MODEL& );
-							~GRAPHIC_MODEL	();
+			GraphicModel();
+			GraphicModel(const GraphicModel& );
+			~GraphicModel();
 					
-					UINT 	get_layer		();
-					void 	set_layer		(UINT );
 		};
 		
-		
-		bool init_graphic				();
-		void free_graphic				();
-		void render_graphic				();
-		
-		void set_draw_graphic_models	(bool );
-		void set_draw_collision_models	(bool );
-		void set_draw_physical_models	(bool );
 	}
 	
 #endif
