@@ -4,9 +4,12 @@
 #include <windows.h>
 #include <engine.hpp>
 
-UINT getMainWindowWidth();
-UINT getMainWindowHeight();
-HWND getMainWindow();
+extern "C"{
+	UINT getMainWindowWidth();
+	UINT getMainWindowHeight();
+	HWND getMainWindow();
+}
+
 void render(VoidEngine::Engine *, HDC );
 
 #endif

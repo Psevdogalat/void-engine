@@ -8,9 +8,7 @@ typedef struct {
 	GLfloat y;
 }GLVector2d;
 
-typedef struct {
-	GLfloat cells[3][3];
-}GLMatrix33;
+typedef GLfloat GLMatrix33[3][3];
 
 typedef struct{
 	GLfloat r;
@@ -42,8 +40,8 @@ __GLFASTCALL__ GLRGB glRGBColor(const RGB_COLOR & );
 __GLFASTCALL__ GLRGB glrgb_blend(const GLRGB &, const GLRGB & );
 __GLFASTCALL__ GLVATTR_DEF glvattr_def(const Vector2d &, 
 	const RGB_COLOR& );
-__GLFASTCALL__ GLVATTR_COT 	glvattr_cot(const Vector2d& , const RGB_COLOR& , const VECTOR2D& );
-
+__GLFASTCALL__ GLVATTR_COT 	glvattr_cot(const Vector2d& , const RGB_COLOR& , 
+	const VECTOR2D& );
 __GLFASTCALL__ GLMATRIX33 glmat_rot(const GLVector2d& );
 __GLFASTCALL__ GLMATRIX33 glmat_scl(const GLVector2d& );
 __GLFASTCALL__ GLMATRIX33 glmat_trp(const GLVector2d& );

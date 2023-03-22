@@ -141,7 +141,7 @@
 			Engine();
 			~Engine();
 
-			static Engine * getInstance();
+			static Engine & getInstance();
 
 			int run(int argc, const char **argv);
 			int addScene(Scene * scene);
@@ -151,19 +151,18 @@
 			bool getAbsolutePath(std::string & pathAbsolute, 
 				const std::string & path);
 			
+			int handleEvent(Event &);
+			int render();
+			int calculate();
+
 			virtual int onInit();			
 			virtual int onFree();
 
 			private:
-			static Engine * instance = nullptr;
-
 			std::list<Scene *> scenes;
 
 			int init();
 			int loop();
-			int handleEvent(EVENT_MSG & event);
-			int calculate();
-			int render();
 			int free();
 
 			int initPlatform();

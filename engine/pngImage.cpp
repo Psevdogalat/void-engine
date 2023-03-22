@@ -1,4 +1,4 @@
-#include <png_images.h>
+#include <pngImage.hpp>
 #include <cstring>
 
 

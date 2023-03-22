@@ -1,251 +1,38 @@
-#include <collisions.h>
+#include <collisions.hpp>
 
-/* class COLLISION_MODEL */
-//==============================================================================
+CollisionModel::CollisionModel(){};
 
-COLLISION_MODEL::COLLISION_MODEL(){
-	vertices_n 		= 0;
-	raw_vertices	= nullptr;
-	vertices 		= nullptr;
-	
-}
+CollisionModel::CollisionModel(const CollisionModel & sample):
+	Transformation2d(sample), VectorArray2(sample){};
 
-COLLISION_MODEL::COLLISION_MODEL(const COLLISION_MODEL& Model):
-	TRNSF_OBJECT(Model){
-	
-	vertices_n 			= Model.vertices_n;
-	vertices 			= new VECTOR2D[2*vertices_n];
-	raw_vertices 		= vertices + vertices_n;
-	
-	for(UINT i = 0; i < vertices_n; i++)
-		raw_vertices[i] = Model.raw_vertices[i];
-	
-}
+CollisionModel::CollisionModel(const VectorArray2 & array):
+	VectorArray2(array){};
 
-COLLISION_MODEL::COLLISION_MODEL(const VECTOR_SHAPE& Shape){
+CollisionModel::CollisionModel(const Vector2d * array, size_t arraySize):
+	VectorArray2(array, arraySize){};
 
-	vertices_n 			= Shape.get_vertices_quantity();
-	vertices 			= new VECTOR2D[2*vertices_n];
-	raw_vertices 		= vertices + vertices_n;
-	
-	for(UINT i = 0; i < vertices_n; i++)
-		Shape.get_vertex(i, raw_vertices[i]);
-	
-}
+CollisionModel::~CollisionModel(){};
 
-COLLISION_MODEL::COLLISION_MODEL
-(
-	const VERTEX_ARRAY& Vertex_array
-)
+CollisionModel & CollisionModel::operator= (const CollisionModel & rval)
 {
-	const VECTOR2D* array_vertices; 
-	
-	vertices_n 		= Vertex_array.get_vertices_n();
-	array_vertices	= Vertex_array.get_vertices();
-	
-	vertices 			= new VECTOR2D[2*vertices_n];
-	raw_vertices 		= vertices + vertices_n;
-	
-	for(UINT i = 0; i < vertices_n; i++)
-		raw_vertices[i] = array_vertices[i];
-	
-}
-
-COLLISION_MODEL::COLLISION_MODEL(const VECTOR2D* Vertices, UINT Vertices_n){
-	
-	vertices_n 		= (Vertices_n < 3)?3:Vertices_n;
-	vertices 		= new VECTOR2D[2*vertices_n];
-	raw_vertices	= vertices + vertices_n;
-	
-	for(UINT i = 0; i < Vertices_n; i++)
-		raw_vertices[i] = Vertices[i];
-	
-	for(UINT i = Vertices_n; i < vertices_n; i++)
-		raw_vertices[i] = vector2d(0.0, 0.0);
-	
-}
-
-COLLISION_MODEL::~COLLISION_MODEL(){
-	if(vertices != nullptr)
-		delete [] vertices;
-	
-}
-
-UINT COLLISION_MODEL::get_vertices_n() const{
-	return vertices_n;
-}
-
-const VECTOR2D* COLLISION_MODEL::get_vertices() const{
-	MATRIX33 tm;
-	
-	tm = get_forward_matrix();
-	
-	for(UINT i = 0; i < vertices_n; i++)
-		vertices[i] = tm * raw_vertices[i];
-	
-	return (const VECTOR2D*) vertices;
-}
-
-const VECTOR2D* COLLISION_MODEL::get_raw_vertices() const{
-	return (const VECTOR2D*) raw_vertices;
-}
-
-COLLISION_MODEL& 
-COLLISION_MODEL::operator= 
-(
-	const COLLISION_MODEL& Rval
-)
-{
-	this->~COLLISION_MODEL();
-	new(this) COLLISION_MODEL(Rval);
+	this->~CollisionModel();
+	new(this) CollisionModel(rval);
 	
 	return *this;
-}
-
-/* GJK algorith implementation */
-//==============================================================================
-VECTOR2D gjk_support(
-	const VECTOR2D* Vertices, UINT Vertices_quantity, 
-	const VECTOR2D& Direction
-){
-	UINT 		imax_vertex;
-	double 		max_distance;
-	double 		distance;
-	
-	if(Vertices_quantity < 1)
-		return vector2d(0.0, 0.0);
-	
-	imax_vertex	= 0;
-	max_distance = scalar_product2d(Vertices[imax_vertex], Direction);
-		
-	for(UINT i = 1; i < Vertices_quantity; i++){
-		distance = scalar_product2d(Vertices[i], Direction);
-		if(distance > max_distance){
-			max_distance 	= distance;
-			imax_vertex 	= i;
-		}
-	}
-	
-	return Vertices[imax_vertex];
-}
-
-
-VECTOR2D gjk_support_sco(
-	const VECTOR2D* Vertices1, UINT Vertices1_quantity, 
-	const VECTOR2D* Vertices2, UINT Vertices2_quantity, 
-	const VECTOR2D& Direction
-){
-	return (
-		gjk_support(Vertices1, Vertices1_quantity, Direction) - 
-		gjk_support(Vertices2, Vertices2_quantity,-Direction)
-	);
-}
-
-
-bool gjk_validate_simplex(VECTOR2D* Simplex, UINT& Simplex_size, VECTOR2D& Direction){
-	VECTOR2D ba_vector;
-	VECTOR2D ac_vector;
-	
-	switch(Simplex_size){
-		case 1:
-			Direction = -Direction;
-		break;
-		case 2:
-			ba_vector = Simplex[1] - Simplex[0];
-			Direction = vector2d(-ba_vector.y, ba_vector.x);
-			
-			if(vector_product2d(ba_vector, -Simplex[1]) < 0.0){
-				ba_vector  = Simplex[0];
-				Simplex[0] = Simplex[1];
-				Simplex[1] = ba_vector;
-				Direction  = -Direction;
-			}
-		break;
-		case 3:
-			ba_vector = Simplex[2] - Simplex[1];
-			ac_vector = Simplex[0] - Simplex[2];
-			if(vector_product2d(ac_vector, -Simplex[2]) < 0.0){
-				if(vector_product2d(ba_vector, -Simplex[1]) < 0.0){
-					Simplex[0]		= Simplex[2];
-					Simplex_size	= 1;
-					Direction		= -Simplex[0];
-					
-				}else{
-					Simplex[1] 		= Simplex[2];
-					Simplex_size 	= 2;
-					Direction 		= vector2d(ac_vector.y, -ac_vector.x);
-				}
-				
-			}else
-				if(vector_product2d(ba_vector, -Simplex[1]) < 0.0){
-					Simplex[0]		= Simplex[2];
-					Simplex_size 	= 2;
-					Direction 		= vector2d(ba_vector.y, -ba_vector.x);
-					
-				}else
-					return true;
-		break;
-	}
-	
-	return false;
-}
-
-
-bool gjk_collision2d(
-	const VECTOR2D* Vertices1, 
-	UINT  			Vertices1_n, 
-	const VECTOR2D* Vertices2, 
-	UINT  			Vertices2_n, 
-	GJK_SIMPLEX2D* 	Simplex
-){
-	VECTOR2D 	direction;
-	VECTOR2D 	support_vertex;
-	VECTOR2D* 	simplex;
-	UINT 	 	simplex_size;
-	
-	simplex_size	= 0;
-	simplex 		= new VECTOR2D[3];
-	direction 		= vector2d(0.0, 1.0);
-	
-	while(true){
-		support_vertex = gjk_support_sco(
-			Vertices1, Vertices1_n, 
-			Vertices2, Vertices2_n, 
-			direction
-		);
-		
-		if(scalar_product2d(support_vertex, direction) < 0.0)
-			break;
-		
-		simplex[simplex_size++] = support_vertex;
-		
-		if(gjk_validate_simplex(simplex, simplex_size, direction)){
-			
-			if(Simplex != nullptr)
-				for(UINT i=0; i<3; i++)
-					Simplex->values[i] = simplex[i];
-			
-			delete [] simplex;
-			return true;
-		}
-	}
-	
-	delete [] simplex;
-	return false;
 }
 
 /* EPA algorith implementation */
 //=================================================================================================
 typedef struct{
-	VECTOR2D 	normal;
+	Vector2d 	normal;
 	double 		distance;
 	UINT		index;
 }EPA_EDGE_INFO;
 
-EPA_EDGE_INFO epa_find_closest_edge(const VECTOR2D* Polytope, UINT Polytope_size){
+EPA_EDGE_INFO epa_find_closest_edge(const Vector2d* Polytope, UINT Polytope_size){
 	EPA_EDGE_INFO 	edge_info;
 	UINT 			i;
-	VECTOR2D 		edge, normal;
+	Vector2d 		edge, normal;
 	double 			distance;
 
 	i = Polytope_size-1;
@@ -269,7 +56,7 @@ EPA_EDGE_INFO epa_find_closest_edge(const VECTOR2D* Polytope, UINT Polytope_size
 	return edge_info;
 }
 
-void epa_insert_vertex(VECTOR2D* Polytope , UINT& Polytope_size, UINT Index, VECTOR2D Vertex){
+void epa_insert_vertex(Vector2d* Polytope , UINT& Polytope_size, UINT Index, Vector2d Vertex){
 	for(UINT i = Polytope_size; i > Index+1; i--)
 		Polytope[i] = Polytope[i-1];
 	
@@ -278,24 +65,24 @@ void epa_insert_vertex(VECTOR2D* Polytope , UINT& Polytope_size, UINT Index, VEC
 }
 
 EPA_INFO2D epa_info2d(
-	const VECTOR2D* 		Vertices1, 
+	const Vector2d* 		Vertices1, 
 	const UINT  			Vertices1_n, 
-	const VECTOR2D* 		Vertices2, 
+	const Vector2d* 		Vertices2, 
 	const UINT  			Vertices2_n,
 	const GJK_SIMPLEX2D& 	Simplex,
-	VECTOR2D**				Polytope
+	Vector2d**				Polytope
 ){
 	EPA_INFO2D 		info;
-	VECTOR2D*		polytope;
+	Vector2d*		polytope;
 	UINT			polytope_size;
 	UINT			polytope_size_max;
-	VECTOR2D 		vertex;
+	Vector2d 		vertex;
 	double 			distance;
 	EPA_EDGE_INFO	closest_edge;
 	
 	//alloc memory for polytope, polytope size not higher sco size
 	polytope_size_max =  Vertices1_n * Vertices2_n;
-	polytope = new VECTOR2D[polytope_size_max];
+	polytope = new Vector2d[polytope_size_max];
 	
 	//copy simplex in polytope
 	polytope_size = 3;
@@ -341,15 +128,15 @@ EPA_INFO2D epa_info2d(
 /* raycast to shape implementation */
 //=================================================================================================
 bool raycast2d(
-	const VECTOR2D& Direction, 
-	const VECTOR2D* Vertices, 
+	const Vector2d& Direction, 
+	const Vector2d* Vertices, 
 	const UINT 		Vertices_n, 
 	RAYCAST_INFO2D*	Info
 ){
 	
-	VECTOR2D 	vertex_a;
-	VECTOR2D 	vertex_b;
-	VECTOR2D	normal;
+	Vector2d 	vertex_a;
+	Vector2d 	vertex_b;
+	Vector2d	normal;
 	double 		vec_a;
 	double 		vec_b;
 	double 		distance;
@@ -391,14 +178,14 @@ bool raycast2d(
 }
 
 bool raycast2d(
-	const VECTOR2D& 		Origin,
-	const VECTOR2D& 		Direction, 
-	const COLLISION_MODEL& 	Model,
+	const Vector2d& 		Origin,
+	const Vector2d& 		Direction, 
+	const CollisionModel& 	Model,
 	RAYCAST_INFO2D* 		Info
 ){
 	MATRIX33 tm;
-	const VECTOR2D*	raw_vertices;
-	VECTOR2D*		vertices;
+	const Vector2d*	raw_vertices;
+	Vector2d*		vertices;
 	UINT			vertices_n;
 	bool 			collision;
 	
@@ -406,7 +193,7 @@ bool raycast2d(
 	
 	vertices_n 		= Model.get_vertices_n();
 	raw_vertices	= Model.get_raw_vertices();
-	vertices 		= new VECTOR2D[vertices_n];
+	vertices 		= new Vector2d[vertices_n];
 
 	for(UINT i=0; i<vertices_n; i++)
 		vertices[i] = tm * raw_vertices[i];
@@ -420,13 +207,13 @@ bool raycast2d(
 
 /* model to model check collision function*/
 bool mtm_collision2d(
-	const COLLISION_MODEL& 	Model_first	,
-	const COLLISION_MODEL& 	Model_second,
+	const CollisionModel& 	Model_first	,
+	const CollisionModel& 	Model_second,
 	GJK_SIMPLEX2D*			Gjk_simplex,
 	EPA_INFO2D*				Epa_info 	 
 ){
-	const VECTOR2D* vertices1;
-	const VECTOR2D* vertices2;
+	const Vector2d* vertices1;
+	const Vector2d* vertices2;
 	UINT	 		vertices1_n;
 	UINT			vertices2_n;
 	GJK_SIMPLEX2D	simplex;
@@ -464,12 +251,12 @@ bool mtm_collision2d(
 }
 
 bool ptm_collision2d(
-	const COLLISION_MODEL& 	Model_first	,
-	const VECTOR2D& 		Point,
+	const CollisionModel& 	Model_first	,
+	const Vector2d& 		Point,
 	GJK_SIMPLEX2D*			Gjk_simplex, 
 	EPA_INFO2D*				Epa_info 	 
 ){
-	const VECTOR2D* vertices1;
+	const Vector2d* vertices1;
 	UINT	 		vertices1_n;
 	GJK_SIMPLEX2D	simplex;
 	

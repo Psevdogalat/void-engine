@@ -1,4 +1,4 @@
-#include <memory_manage.h>
+#include <memoryManage.hpp>
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
@@ -142,7 +142,8 @@ lmchunk_info* cyclic_mmngr::alloc_record(){
 		for(;;head = head->next){
 			if(head->info.rem >= sizeof(lmchunk_info)){
 				precord 		= (lmchunk_info*) head->info.cur;
-				head->info.cur	= (uint8_t*)head->info.cur + sizeof(lmchunk_info);
+				head->info.cur	= (uint8_t*)head->info.cur + 
+					sizeof(lmchunk_info);
 				head->info.rem 	-= sizeof(lmchunk_info);
 				mng_mem_size 	+= sizeof(lmchunk_info);
 				return precord;
@@ -199,11 +200,11 @@ void cyclic_mmngr::clear(){
 	cyl_mem_size = 0;
 }
 
-size_t 			cyclic_mmngr::get_chunk_size	()const{return chunk_size;	}
-size_t 			cyclic_mmngr::get_mem_limit		()const{return mem_limit;	}
-unsigned int 	cyclic_mmngr::get_chunks		()const{return chunks;		}
-size_t 			cyclic_mmngr::get_alloc_mem		()const{return amem_size;	}
-size_t 			cyclic_mmngr::get_fill			()const{return cyl_mem_size + mng_mem_size;	}
-size_t 			cyclic_mmngr::get_max_fill		()const{return max_fill;	}
-unsigned int 	cyclic_mmngr::get_errno			()const{return error_no;	}
-void 			cyclic_mmngr::clear_errno		(){error_no = 0;			}	
+size_t cyclic_mmngr::get_chunk_size()const{return chunk_size;}
+size_t cyclic_mmngr::get_mem_limit()const{return mem_limit;}
+unsigned int cyclic_mmngr::get_chunks()const{return chunks;}
+size_t cyclic_mmngr::get_alloc_mem()const{return amem_size;	}
+size_t cyclic_mmngr::get_fill()const {return cyl_mem_size + mng_mem_size;};
+size_t cyclic_mmngr::get_max_fill()const{return max_fill;}
+unsigned int cyclic_mmngr::get_errno()const{return error_no;}
+void cyclic_mmngr::clear_errno(){error_no = 0;}	

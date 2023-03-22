@@ -1,8 +1,8 @@
 #include <engine.hpp>
 #include <graphics.hpp>
 #include <glSupport.hpp>
-#include <memory_manage.h>
-#include <png_images.h>
+#include <memoryManage.hpp>
+#include <pngImage.h>
 #include <gui.h>
 
 #include <windows.h>
