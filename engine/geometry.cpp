@@ -1,246 +1,144 @@
-#include <geometry.h>
-#include <std_defines.h>
+#include <geometry.hpp>
+#include <
 
 #include <cstdio>
 #include <cmath>
 
-/* VECTOR2D methods realisation */
-VECTOR2D operator+(const VECTOR2D& V1, const VECTOR2D& V2){
-	VECTOR2D r_vector;
-	r_vector.x = V1.x + V2.x;
-	r_vector.y = V1.y + V2.y;
-	return r_vector;
-}
+/* Vector2d methods realisation */
+Vector2d operator+(const Vector2d & v1, const Vector2d & v2)
+{
+	return add2d(v1, v2);
+};
 
-VECTOR2D operator-(const VECTOR2D& V1, const VECTOR2D& V2){
-	VECTOR2D r_vector;
-	r_vector.x = V1.x - V2.x;
-	r_vector.y = V1.y - V2.y;
-	return r_vector;
-}
+Vector2d operator-(const Vector2d & v1, const Vector2d & v2)
+{
+	return sub2d(v1, v2);
+};
 
-VECTOR2D operator- (const VECTOR2D& V){
-	VECTOR2D r_vector;
-	r_vector.x = -V.x;
-	r_vector.y = -V.y;
-	return r_vector;
-}
+Vector2d operator- (const Vector2d & v1)
+{
+	return neg2d(v1);
+};
 
-VECTOR2D& operator+=(VECTOR2D& V1, const VECTOR2D& V2){
-	V1.x += V2.x;
-	V1.y += V2.y;
-	return V1;
-}
+Vector2d & operator+=(Vector2d & v1, const Vector2d & v2)
+{
+	v1 = add2d(v1, v2);
+	return v1;
+};
 
-VECTOR2D& operator-=(VECTOR2D& V1, const VECTOR2D& V2){
-	V1.x -= V2.x;
-	V1.y -= V2.y;
-	return V1;
-}
+Vector2d & operator-=(Vector2d & v1, const Vector2d & v2){
+	v1 = sub2d(v1, v2);
+	return v1;
+};
 
-VECTOR2D  operator* (const VECTOR2D& V, double Multiplier){
-	VECTOR2D r_vector;
-	r_vector.x = V.x * Multiplier;
-	r_vector.y = V.y * Multiplier;
-	return r_vector;
-}
+Vector2d  operator* (const Vector2d & v1, double multiplier)
+{
+	return scalarScale2d(v1, multiplier);
+};
 
-VECTOR2D operator* (double Multiplier, const VECTOR2D& V){
-	return V * Multiplier;
-}
+Vector2d operator* (double multiplier, const Vector2d & v)
+{
+	return scalarScale2d(multiplier, v1);
+};
 
-VECTOR2D operator* (const VECTOR2D& V1, const VECTOR2D& V2){
-	return vector2d(V1.x * V2.x, V1.y * V2.y);
-}
+Vector2d operator* (const Vector2d & v1, const Vector2d & v2)
+{
+	return scl2d(v1, v2);
+};
 
-VECTOR2D operator* (const MATRIX33& M, const VECTOR2D& V){
-	VECTOR2D retv;
-	retv.x = M.values[0][0] * V.x + M.values[0][1] * V.y + M.values[0][2];	
-	retv.y = M.values[1][0] * V.x + M.values[1][1] * V.y + M.values[1][2];	
-	return retv;
-}
+Vector2d  operator/ (const Vector2d & vd1, double d2)
+{
+	return vector2d(vd1.x/d2, vd1.y/d2);
+};
 
-VECTOR2D  operator/ (const VECTOR2D& V, double Divider){
-	VECTOR2D r_vector;
-	r_vector.x = V.x / Divider;
-	r_vector.y = V.y / Divider;
-	return r_vector;
-}
+Vector2d operator/ (double d1, const Vector2d & vd2 )
+{
+	return vector2d(d1/vd2.x, d1/vd2.y);
+};
 
-VECTOR2D	operator/ (double D,const VECTOR2D& Divider ){
-	return vector2d(D/Divider.x, D/Divider.y);
-}
+Vector2d & operator*=(Vector2d & v1, double multiplier)
+{
+	v1 = scalarScale2d(v1, multiplier);	
+	return v1;
+};
 
-VECTOR2D& operator*=(VECTOR2D& V, double Multiplier){
-	V.x *= Multiplier;
-	V.y *= Multiplier;
-	return V;
-}
+Vector2d & operator/=(Vector2d & v1, double d2)
+{
+	v1.x /= d1;
+	v1.y /= d1;
+	return v1;
+};
 
-VECTOR2D& operator/=(VECTOR2D& V, double Divider){
-	V.x /= Divider;
-	V.y /= Divider;
-	return V;
-}
-
-bool operator==(const VECTOR2D& V1, const VECTOR2D& V2){
-	if((V1.x == V2.x) && (V1.y == V2.y))
+bool operator==(const Vector2d & v1, const Vector2d & v2)
+{
+	if((v1.x == v2.x) && (v1.y == v2.y))
 		return true;
 	
 	return false;
-}
+};
 
-bool operator!=(const VECTOR2D& V1, const VECTOR2D& V2){
-	if(	V1 == V2)
+bool operator!=(const Vector2d & v1, const Vector2d & v2)
+{
+	if(	v1 == v2)
 		return false;
 	
 	return true;
-}
+};
 
-VECTOR2D vector2d(double X, double Y){
-	VECTOR2D r_vector;
-	r_vector.x = X;
-	r_vector.y = Y;
-	return r_vector;
-}
+Vector2d operator* (const Matrix33d & m1, const Vector2d & v2)
+{
+	return mulM33V2d(m1, v2);	
+};
 
-VECTOR2D create_normal(){
-	return vector2d(1,0);
-}
-
-double scalar_product2d(const VECTOR2D& V1, const VECTOR2D& V2){
-	return V1.x * V2.x + V1.y * V2.y;
-}
-
-double vector_product2d(const VECTOR2D& V1, const VECTOR2D& V2){
-	return V1.x * V2.y - V2.x * V1.y;
-}
-
-double 	 vector_length		(const VECTOR2D& V){
-	return sqrt(scalar_product2d(V,V));
-}
-
-VECTOR2D normalize_vector(const VECTOR2D& V){
-	double 		v_length;
-	
-	v_length = vector_length(V);
-	
-	if(v_length == 0)
-		return create_normal();
-	
-	return V / v_length;
+Matrix33d operator*	(const Matrix33di & m1, const Matrix33d & m2){
+		return rmat;
 }
 
 
-VECTOR2D rotate_vector(const VECTOR2D& V, double Angle){
-	VECTOR2D r_vector;
-	r_vector.x = V.x*cos(Angle) - V.y*sin(Angle);
-	r_vector.y = V.x*sin(Angle) + V.y*cos(Angle);
-	
-	return r_vector;
-}
-
-VECTOR2D rotate_vector(const VECTOR2D& V, const VECTOR2D& Rotator){
-	VECTOR2D normal;
-	VECTOR2D r_vector;
-	
-	normal = normalize_vector(Rotator);
-	r_vector.x = V.x * normal.x  - V.y * normal.y; 
-	r_vector.y = V.x * normal.y  + V.y * normal.x;
-	
-	return r_vector;
-}
-
-
-VECTOR2D scale_vector(const VECTOR2D& V, double Scale){
-	return V * Scale;
-}
-
-VECTOR2D scale_vector(const VECTOR2D& V, const VECTOR2D& Scale_vector){
-	VECTOR2D r_vector;
-	
-	r_vector.x = V.x * Scale_vector.x;
-	r_vector.y = V.y * Scale_vector.y;
-	
-	return r_vector;
-}
-
-VECTOR2D mirror_vector(const VECTOR2D& V, const VECTOR2D& Direction){
-	VECTOR2D normal = normalize_vector(Direction);
-	return V - 2 * scalar_product2d(V,normal)* normal; 
-}
-
-VECTOR2D transform_vertex(const VECTOR2D& Vertex,const VECTOR2D& Position, const VECTOR2D& Normal, double Scale ){
-	return rotate_vector(Vertex, Normal) * Scale + Position;
-}
-
-
-VECTOR2D transform_vertex(const VECTOR2D& Vertex, const VECTOR2D& Position, const VECTOR2D& Normal, const VECTOR2D& Scale){
-	return scale_vector(rotate_vector(Vertex, Normal), Scale) + Position;
-}
-
-VECTOR2D left_orto_normal	(const VECTOR2D& V){
-	return normalize_vector(vector2d(-V.y, V.x));
-}
-
-/* MATRIX33 methods*/
-MATRIX33	operator*	(const MATRIX33& M1, const MATRIX33& M2){
-	UINT 		i,j,k;
-	MATRIX33	rmat;
-	for(i = 0; i<3; i++)
-		for(j = 0; j<3; j++){
-			rmat.values[i][j] = 0.0;
-			for(k = 0; k<3; k++)
-				rmat.values[i][j] += M1.values[i][k] * M2.values[k][j];
-		}
-	return rmat;
-}
-
-
-MATRIX33	mat33_rot	(const VECTOR2D& Rotor){
-	return (MATRIX33){
+Matrix33d	mat33_rot	(const Vector2d& Rotor){
+	return (Matrix33d){
 		Rotor.x, -Rotor.y, 	0,
 		Rotor.y,  Rotor.x, 	0,
 		0,			0,		1
 	};
 }
 
-MATRIX33	mat33_scl	(const VECTOR2D& Scale){
-	return (MATRIX33){
+Matrix33d	mat33_scl	(const Vector2d& Scale){
+	return (Matrix33d){
 		Scale.x, 	0, 		0,
 		0,  	Scale.y, 	0,
 		0,			0,		1
 	};
 }
-MATRIX33	mat33_trp	(const VECTOR2D& Position){
-	return (MATRIX33){
+Matrix33d	mat33_trp	(const Vector2d& Position){
+	return (Matrix33d){
 		1, 			0, 		Position.x,
 		0,  		1, 		Position.y,
 		0,			0,		1
 	};
 }
-MATRIX33	mat33_trans	(
-	const VECTOR2D& Pos, 
-	const VECTOR2D& Rot, 
-	const VECTOR2D& Scl
+Matrix33d	mat33_trans	(
+	const Vector2d& Pos, 
+	const Vector2d& Rot, 
+	const Vector2d& Scl
 ){
-	return (MATRIX33){
+	return (Matrix33d){
 		Scl.x * Rot.x, 	   -Scl.y*Rot.y, 		Pos.x,
 		Scl.x * Rot.y,		Scl.y*Rot.x, 		Pos.y,
 					0,				  0,				 1
 	};
 } 
 
-MATRIX33 mat33_trans_back (
-	const VECTOR2D& Pos, 
-	const VECTOR2D& Rot, 
-	const VECTOR2D& Scl
+Matrix33d mat33_trans_back (
+	const Vector2d& Pos, 
+	const Vector2d& Rot, 
+	const Vector2d& Scl
 ){
 	double scl1, scl2;
 	scl1 = (1.0 / Scl.x);
 	scl2 = (1.0 / Scl.y);
 
-	return (MATRIX33){
+	return (Matrix33d){
 		 scl1 * Rot.x,	
 		 scl1 * Rot.y, 	
 		-scl1 * (Pos.x * Rot.x + Pos.y * Rot.y),
@@ -265,9 +163,9 @@ TRNSF_OBJECT::TRNSF_OBJECT
 
 TRNSF_OBJECT::TRNSF_OBJECT
 (
-	const VECTOR2D& Position, 
-	const VECTOR2D& Normal, 
-	const VECTOR2D&	Scale
+	const Vector2d& Position, 
+	const Vector2d& Normal, 
+	const Vector2d&	Scale
 )
 {
 	position 	= Position;
@@ -292,7 +190,7 @@ TRNSF_OBJECT::~TRNSF_OBJECT
 void 	 
 TRNSF_OBJECT::set_position	
 (
-	const VECTOR2D& Position
+	const Vector2d& Position
 )
 {
 	position = Position; 	
@@ -301,7 +199,7 @@ TRNSF_OBJECT::set_position
 void 	 
 TRNSF_OBJECT::set_normal	
 (
-	const VECTOR2D& Normal
+	const Vector2d& Normal
 )	
 {
 	normal = normalize_vector(Normal); 
@@ -310,34 +208,34 @@ TRNSF_OBJECT::set_normal
 void 	 
 TRNSF_OBJECT::set_scale	
 (
-	const VECTOR2D& Scale
+	const Vector2d& Scale
 )
 {
 	scale = Scale; 	
 }
 
-VECTOR2D 
+Vector2d 
 TRNSF_OBJECT::get_position	
 () const 
 {
 	return position; 	
 }
 
-VECTOR2D 
+Vector2d 
 TRNSF_OBJECT::get_normal	
 () const 
 {
 	return normal; 	
 }
 
-VECTOR2D 
+Vector2d 
 TRNSF_OBJECT::get_scale	
 () const 
 {
 	return scale; 	
 }
 
-MATRIX33 
+Matrix33d 
 TRNSF_OBJECT::get_forward_matrix	
 () const 
 {
@@ -349,7 +247,7 @@ TRNSF_OBJECT::get_forward_matrix
 	);
 }
 
-MATRIX33 
+Matrix33d 
 TRNSF_OBJECT::get_backward_matrix	
 () const 
 {
@@ -384,7 +282,7 @@ TRNSF_OBJECT::operator=
 		
 	}
 	
-	VERTEX_ARRAY::VERTEX_ARRAY(const VECTOR2D* Vertices, UINT Vertices_n){
+	VERTEX_ARRAY::VERTEX_ARRAY(const Vector2d* Vertices, UINT Vertices_n){
 		vertices	= nullptr;
 		vertices_n 	= 0;
 		buffer_len 	= 0;
@@ -392,7 +290,7 @@ TRNSF_OBJECT::operator=
 		set_vertices(Vertices, Vertices_n);
 	}
 	
-	VERTEX_ARRAY::VERTEX_ARRAY(const VECTOR2D& Vertex, UINT Vertices_n){
+	VERTEX_ARRAY::VERTEX_ARRAY(const Vector2d& Vertex, UINT Vertices_n){
 		vertices	= nullptr;
 		vertices_n 	= 0;
 		buffer_len 	= 0;
@@ -419,15 +317,15 @@ TRNSF_OBJECT::operator=
 			if(vertices != nullptr)
 				delete [] vertices;
 			
-			vertices = new VECTOR2D[buffer_len];
+			vertices = new Vector2d[buffer_len];
 		}
 	}
 	
 	VERTEX_ARRAY* 	VERTEX_ARRAY::clone			() const {return new VERTEX_ARRAY(*this);}
 	UINT 			VERTEX_ARRAY::get_vertices_n() const {return vertices_n;}
-	const VECTOR2D*	VERTEX_ARRAY::get_vertices	() const {return (const VECTOR2D*) vertices;}
+	const Vector2d*	VERTEX_ARRAY::get_vertices	() const {return (const Vector2d*) vertices;}
 	
-	void VERTEX_ARRAY::set_vertices(const VECTOR2D* Vertices, UINT Vertices_n){
+	void VERTEX_ARRAY::set_vertices(const Vector2d* Vertices, UINT Vertices_n){
 		alloc_vertices_buffer(Vertices_n);
 		
 		vertices_n = Vertices_n;
@@ -437,7 +335,7 @@ TRNSF_OBJECT::operator=
 			
 	}
 	
-	void VERTEX_ARRAY::set_vertices(const VECTOR2D& Vertex, UINT Vertices_n){
+	void VERTEX_ARRAY::set_vertices(const Vector2d& Vertex, UINT Vertices_n){
 		alloc_vertices_buffer(Vertices_n);
 		
 		vertices_n = Vertices_n;
@@ -447,7 +345,7 @@ TRNSF_OBJECT::operator=
 			
 	}
 	
-	void VERTEX_ARRAY::set_vertex(const VECTOR2D& Vertex, UINT Index){
+	void VERTEX_ARRAY::set_vertex(const Vector2d& Vertex, UINT Index){
 		if(Index < vertices_n){
 			vertices[Index] = Vertex;
 		}
@@ -481,7 +379,7 @@ TRNSF_OBJECT::operator=
 		length 	= (Length >= 0.0)?Length: -Length;
 		offset 	= (Offset <  0.0)?0.0: (Offset > 1.0)?1.0: Offset;
 		
-		VECTOR2D vertices[2] = {
+		Vector2d vertices[2] = {
 			vector2d(-length * offset, 			0.0),
 			vector2d( length * (1.0 - offset), 	0.0)
 		};
@@ -515,7 +413,7 @@ TRNSF_OBJECT::operator=
 		width 	= (Width  < 0.0)?0.0: Width;
 		height 	= (Height < 0.0)?0.0: Height;
 		
-		VECTOR2D vertices[4] = {
+		Vector2d vertices[4] = {
 			vector2d(-width/2.0, height/2.0),
 			vector2d( width/2.0, height/2.0),
 			vector2d( width/2.0,-height/2.0),
@@ -575,7 +473,7 @@ VECTOR_OBJECT::VECTOR_OBJECT(){
 	normal 		= create_normal();
 }
 
-VECTOR_OBJECT::VECTOR_OBJECT(const VECTOR2D& Position, const VECTOR2D& Normal){
+VECTOR_OBJECT::VECTOR_OBJECT(const Vector2d& Position, const Vector2d& Normal){
 	scale 		= 1.0;
 	position 	= Position;
 	normal		= normalize_vector(Normal);
@@ -597,19 +495,19 @@ UINT VECTOR_OBJECT::get_type() const{
 	return type;
 }
 
-void VECTOR_OBJECT::set_position(const VECTOR2D& Position){
+void VECTOR_OBJECT::set_position(const Vector2d& Position){
 	position = Position;
 }
 
-VECTOR2D VECTOR_OBJECT::get_position() const{
+Vector2d VECTOR_OBJECT::get_position() const{
 	return position;
 }
 
-void VECTOR_OBJECT::set_normal(const VECTOR2D& Normal){
+void VECTOR_OBJECT::set_normal(const Vector2d& Normal){
 	normal		= normalize_vector(Normal);
 }
 
-VECTOR2D VECTOR_OBJECT::get_normal() const{
+Vector2d VECTOR_OBJECT::get_normal() const{
 	return normal;
 }
 
@@ -617,11 +515,11 @@ void VECTOR_OBJECT::rotate(double Angle){
 	normal = rotate_vector(normal, Angle);
 }
 
-void VECTOR_OBJECT::rotate(const VECTOR2D& Rotator){
+void VECTOR_OBJECT::rotate(const Vector2d& Rotator){
 	normal = rotate_vector(normal, Rotator);
 }
 
-void VECTOR_OBJECT::move( const VECTOR2D& Vector){
+void VECTOR_OBJECT::move( const Vector2d& Vector){
 	position += Vector;
 }
 
@@ -641,7 +539,7 @@ VECTOR_POINT::VECTOR_POINT(){
 	type = VECTOR_OBJECT::T_POINT;
 }
 
-VECTOR_POINT::VECTOR_POINT(const VECTOR2D& Position, const VECTOR2D& Normale): 
+VECTOR_POINT::VECTOR_POINT(const Vector2d& Position, const Vector2d& Normale): 
 VECTOR_OBJECT(Position, Normale){
 	type = VECTOR_OBJECT::T_POINT;
 }
@@ -670,11 +568,11 @@ VECTOR_POINT& VECTOR_POINT::operator= (const VECTOR_POINT& Point){
 VECTOR_POLYLINE::VECTOR_POLYLINE(){
 	type 				= VECTOR_OBJECT::T_POLYLINE;
 	vertices_quantity	= MIN_VERTICES_QUANTITY;
-	vertices 			= new VECTOR2D[vertices_quantity];
+	vertices 			= new Vector2d[vertices_quantity];
 	
 }
 
-VECTOR_POLYLINE::VECTOR_POLYLINE(const VECTOR2D& Position, const VECTOR2D& Normale, UINT Quantity):
+VECTOR_POLYLINE::VECTOR_POLYLINE(const Vector2d& Position, const Vector2d& Normale, UINT Quantity):
 VECTOR_OBJECT(Position, Normale){
 	type = VECTOR_OBJECT::T_POLYLINE;
 	
@@ -683,7 +581,7 @@ VECTOR_OBJECT(Position, Normale){
 	}else
 		vertices_quantity = Quantity;
 	
-	vertices 			= new VECTOR2D[vertices_quantity];
+	vertices 			= new Vector2d[vertices_quantity];
 }
 
 VECTOR_POLYLINE::VECTOR_POLYLINE(const VECTOR_POLYLINE& Polyline):
@@ -691,7 +589,7 @@ VECTOR_OBJECT((const VECTOR_OBJECT&) Polyline){
 	type = VECTOR_OBJECT::T_POLYLINE;
 	
 	vertices_quantity 	= Polyline.vertices_quantity;
-	vertices 			= new VECTOR2D[vertices_quantity];
+	vertices 			= new Vector2d[vertices_quantity];
 	for(UINT ivertex = 0 ; ivertex < vertices_quantity; ivertex++)
 		vertices[ivertex] = Polyline.vertices[ivertex];
 }
@@ -711,7 +609,7 @@ VECTOR_POLYLINE& VECTOR_POLYLINE::operator= (const VECTOR_POLYLINE& Polyline ){
 	delete [] vertices;
 	
 	vertices_quantity 	= Polyline.vertices_quantity;
-	vertices 			= new VECTOR2D[vertices_quantity];
+	vertices 			= new Vector2d[vertices_quantity];
 	for(UINT ivertex = 0 ; ivertex < vertices_quantity; ivertex++)
 		vertices[ivertex] = Polyline.vertices[ivertex];
 	
@@ -723,11 +621,11 @@ UINT VECTOR_POLYLINE::get_vertices_quantity() const{
 }
 
 
-const VECTOR2D* VECTOR_POLYLINE::get_vertices() const{
+const Vector2d* VECTOR_POLYLINE::get_vertices() const{
 	return vertices;
 }	
 
-RETCODE VECTOR_POLYLINE::get_vertex(UINT Index, VECTOR2D& R_vertex) const{
+RETCODE VECTOR_POLYLINE::get_vertex(UINT Index, Vector2d& R_vertex) const{
 	if(Index >= vertices_quantity)
 		return RET_IDETIFIER_INVALID;
 	
@@ -736,7 +634,7 @@ RETCODE VECTOR_POLYLINE::get_vertex(UINT Index, VECTOR2D& R_vertex) const{
 	return RET_SUCCESS;
 }
 
-RETCODE VECTOR_POLYLINE::set_vertex(UINT Index, const VECTOR2D& Vertex){
+RETCODE VECTOR_POLYLINE::set_vertex(UINT Index, const Vector2d& Vertex){
 	if(Index >= vertices_quantity)
 		return RET_IDETIFIER_INVALID;
 	
@@ -752,7 +650,7 @@ VECTOR_LINE::VECTOR_LINE(){
 	type = VECTOR_OBJECT::T_LINE;
 }
 
-VECTOR_LINE::VECTOR_LINE(const VECTOR2D& Position ,const VECTOR2D& Normale, double Length, double Center_offset):
+VECTOR_LINE::VECTOR_LINE(const Vector2d& Position ,const Vector2d& Normale, double Length, double Center_offset):
 	VECTOR_POLYLINE(Position, Normale, VECTOR_POLYLINE::MIN_VERTICES_QUANTITY){
 	type = VECTOR_OBJECT::T_LINE;
 	
@@ -810,7 +708,7 @@ VECTOR_SHAPE::VECTOR_SHAPE(){
 	type = VECTOR_OBJECT::T_SHAPE;
 }
 
-VECTOR_SHAPE::VECTOR_SHAPE(const VECTOR2D& Position, const VECTOR2D& Normale, UINT Quantity):
+VECTOR_SHAPE::VECTOR_SHAPE(const Vector2d& Position, const Vector2d& Normale, UINT Quantity):
 VECTOR_POLYLINE(Position, Normale, Quantity < MIN_VERTICES_QUANTITY?MIN_VERTICES_QUANTITY:Quantity){
 	type = VECTOR_OBJECT::T_SHAPE;
 }
@@ -843,7 +741,7 @@ VECTOR_SHAPE(vector2d(0, 0), create_normal(), 4){
 	height 	= 0;
 }
 
-VECTOR_RECTANGLE::VECTOR_RECTANGLE(const VECTOR2D& Position, const VECTOR2D& Normale, double Width, double Height ):
+VECTOR_RECTANGLE::VECTOR_RECTANGLE(const Vector2d& Position, const Vector2d& Normale, double Width, double Height ):
 VECTOR_SHAPE(Position, Normale, 4){
 	type 	= VECTOR_OBJECT::T_RECTANGLE;
 	width 	= std::abs(Width);
@@ -894,7 +792,7 @@ VECTOR_CIRCLE::VECTOR_CIRCLE(){
 	radius 	= 0;
 }
 
-VECTOR_CIRCLE::VECTOR_CIRCLE(const VECTOR2D& Position, const VECTOR2D& Normale, double Radius):
+VECTOR_CIRCLE::VECTOR_CIRCLE(const Vector2d& Position, const Vector2d& Normale, double Radius):
 VECTOR_OBJECT(Position, Normale){
 	type 	= VECTOR_OBJECT::T_CIRCLE;
 	radius 	= std::abs(Radius);
@@ -925,7 +823,7 @@ VECTOR_COMPOSITE::VECTOR_COMPOSITE(){
 	components_quantity = 0;
 }
 
-VECTOR_COMPOSITE::VECTOR_COMPOSITE(const VECTOR2D& Position, const VECTOR2D& Normale):
+VECTOR_COMPOSITE::VECTOR_COMPOSITE(const Vector2d& Position, const Vector2d& Normale):
 VECTOR_OBJECT(Position, Normale){
 	type 				= VECTOR_OBJECT::T_COMPOSITE;
 	components_quantity = 0;
