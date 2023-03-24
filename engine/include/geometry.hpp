@@ -1,8 +1,7 @@
 #ifndef _GEOMETRY_HPP_
 #define _GEOMETRY_HPP_
 
-#include <Vector2d.h>
-#include <Matrix33.h>
+#include <geometry2.h>
 
 #include <cmath>
 #include <list>

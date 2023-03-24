@@ -1,8 +1,7 @@
 #include <geometry.hpp>
-#include <
+#include <geometry2.h>
 
 #include <cstdio>
-#include <cmath>
 
 /* Vector2d methods realisation */
 Vector2d operator+(const Vector2d & v1, const Vector2d & v2)
@@ -90,67 +89,10 @@ Vector2d operator* (const Matrix33d & m1, const Vector2d & v2)
 	return mulM33V2d(m1, v2);	
 };
 
-Matrix33d operator*	(const Matrix33di & m1, const Matrix33d & m2){
-		return rmat;
-}
-
-
-Matrix33d	mat33_rot	(const Vector2d& Rotor){
-	return (Matrix33d){
-		Rotor.x, -Rotor.y, 	0,
-		Rotor.y,  Rotor.x, 	0,
-		0,			0,		1
-	};
-}
-
-Matrix33d	mat33_scl	(const Vector2d& Scale){
-	return (Matrix33d){
-		Scale.x, 	0, 		0,
-		0,  	Scale.y, 	0,
-		0,			0,		1
-	};
-}
-Matrix33d	mat33_trp	(const Vector2d& Position){
-	return (Matrix33d){
-		1, 			0, 		Position.x,
-		0,  		1, 		Position.y,
-		0,			0,		1
-	};
-}
-Matrix33d	mat33_trans	(
-	const Vector2d& Pos, 
-	const Vector2d& Rot, 
-	const Vector2d& Scl
-){
-	return (Matrix33d){
-		Scl.x * Rot.x, 	   -Scl.y*Rot.y, 		Pos.x,
-		Scl.x * Rot.y,		Scl.y*Rot.x, 		Pos.y,
-					0,				  0,				 1
-	};
-} 
-
-Matrix33d mat33_trans_back (
-	const Vector2d& Pos, 
-	const Vector2d& Rot, 
-	const Vector2d& Scl
-){
-	double scl1, scl2;
-	scl1 = (1.0 / Scl.x);
-	scl2 = (1.0 / Scl.y);
-
-	return (Matrix33d){
-		 scl1 * Rot.x,	
-		 scl1 * Rot.y, 	
-		-scl1 * (Pos.x * Rot.x + Pos.y * Rot.y),
-
-		-scl2 * Rot.y ,	
-		 scl2 * Rot.x, 		  
-		 scl2 * (Pos.x * Rot.y - Pos.y * Rot.x),
-		
-		0,	0,		 1
-	};
-
-}
+Matrix33d operator*	(const Matrix33di & m1, const Matrix33d & m2)
+{
+		return mulM33d(m1, m2);
+};
 
 /* TRNSF_OBJECT */
 TRNSF_OBJECT::TRNSF_OBJECT

@@ -1,5 +1,5 @@
-#include <collisions.h>
-#include <vector2d.h>
+#include <collision2.h>
+#include <geometry2.h>
 
 
 /* GJK algorith implementation */
@@ -18,7 +18,7 @@ Vector2d gjkSupport(const Vector2d * vertices, size_t verticesQuantity,
 	maxDistance = scalarProduct2(vertices[imaxVertex], direction);
 		
 	for(unsigned int i = 1; i < verticesQuantity; i++){
-		distance = scalarProduct2(vertices[i], direction);
+		distance = scalarProd2d(vertices[i], direction);
 		if(distance > maxDistance){
 			maxDistance = distance;
 			imaxVertex 	= i;
@@ -34,7 +34,7 @@ Vector2d gjkSupportSCO( const Vector2d * vertices1, size_t verticesQuantity1,
 	const Vector2d & direction)
 {
 	return gjkSupport(vertices1, verticesQuantity1, direction) - 
-		gjkSupport(vertices2, verticesQuantity2,-direction);
+		gjkSupport(vertices2, verticesQuantity2, neg2d(direction));
 };
 
 
@@ -49,10 +49,10 @@ bool gjkValidateSimplex(Vector2d * simplex, size_t * simplexSize,
 			*direction = negV2d(*direction);
 		break;
 		case 2:
-			baVector = simplex[1] - simplex[0];
+			baVector = sub2d(simplex[1], simplex[0]);
 			*direction = vector2d(-baVector.y, baVector.x);
 			
-			if(vectorProduct2(baVector, negV2d(simplex[1])) < 0.0){
+			if(vectorProd2d(baVector, negV2d(simplex[1])) < 0.0){
 				baVector  = simplex[0];
 				simplex[0] = simplex[1];
 				simplex[1] = baVector;
@@ -61,13 +61,15 @@ bool gjkValidateSimplex(Vector2d * simplex, size_t * simplexSize,
 
 		break;
 		case 3:
-			baVector = simplex[2] - Simplex[1];
-			acVector = simplex[0] - simplex[2];
-			if(vproduct2d(acVector, -Simplex[2]) < 0.0){
-				if(vector_product2d(baVector, -Simplex[1]) < 0.0){
-					Simplex[0]		= Simplex[2];
+			baVector = sub2d(simplex[2], simplex[1]);
+			acVector = sub2d(simplex[0], simplex[2]);
+			if(vectorProd2d(acVector, neg2d(simplex[2])) < 0.0)
+			{
+				if(vectorProd2d(baVector, neg2d(simplex[1])) < 0.0)
+				{
+					simplex[0] = simplex[2];
 					simplexSize	= 1;
-					Direction		= -Simplex[0];
+					*direction = neg2d(simplex[0]);
 					
 				}else{
 					Simplex[1] 		= Simplex[2];

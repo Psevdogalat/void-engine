@@ -1,5 +1,5 @@
-#ifndef __VECTORGEOMETRY_H__
-#define __VECTORGEOMETRY_H__
+#ifndef __GEOMETRY2_H__
+#define __GEOMETRY2_H__
 
 
 #ifdef __cplusplus
