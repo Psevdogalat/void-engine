@@ -1,5 +1,7 @@
-#ifndef _COLLISIONS_H_
-#define _COLLISIONS_H_
+#ifndef _COLLISIONS2_H_
+#define _COLLISIONS2_H_
+
+#include <geometry2.h>
 
 #ifdef __cplusplus
 extern "C"{

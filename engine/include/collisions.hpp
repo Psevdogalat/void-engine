@@ -2,7 +2,7 @@
 #define _COLLISIONS_HPP_
 
 	#include <geometry.hpp>
-	#include <collisions.h>
+	#include <collision2.h>
 	
 	/* collision model class, used for convenient setting of collision figures 
 	in space */ 
@@ -16,8 +16,8 @@
 		~CollisionModel();
 
 		bool raycast(const Vector2d &, const Vector2d &, RaycastInfo2 *) const;
-		bool collision(const CollisionModel &, GJKSimplex2 *, 
-			EPAInfo2 *) const;	
+		bool collision(const CollisionModel &, GJKSimplex2 *, EPAInfo2 *) 
+			const;	
 		bool collision(const Vector2d &, GJKSimplex2 *, EPAInfo2 *) const;		
 		
 		CollisionModel & operator= (const CollisionModel &);

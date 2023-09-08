@@ -23,8 +23,8 @@ Vector2d &	operator/=(		 Vector2d &, double );
 bool 		operator==(const Vector2d &, const Vector2d &);
 bool 		operator!=(const Vector2d &, const Vector2d &);
 
-Matrix33	operator* (const Matrix33 &, const Matrix33 & );
-Vector2d	operator* (const Matrix33 &, const Vector2d & );
+Matrix33d	operator* (const Matrix33d &, const Matrix33d & );
+Vector2d	operator* (const Matrix33d &, const Vector2d & );
 
 class OrientedObject2d{
 	private:
@@ -69,8 +69,8 @@ class Transformation2d: public OrientedObject2d, public ScalableObject2d{
 	void setTransformation(const Vector2d &, const Vector2d &, 
 		const Vector2d &);
 
-	Matrix33 forwardMatrix() const;
-	Matrix33 backwardMatrix() const;
+	Matrix33d forwardMatrix() const;
+	Matrix33d backwardMatrix() const;
 
 	Transformation2d & operator= 	(const Transformation2d &);
 };
