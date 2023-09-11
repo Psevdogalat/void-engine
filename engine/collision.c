@@ -140,8 +140,8 @@ typedef struct{
 	unsigned int 	index;
 }EpaEdgeInfo;
 
-void epaFindClosestEdge(const Vector2d * polytope, size_t polytopeSize, 
-	EpaEdgeInfo * edgeInfo )
+void epaFindClosestEdge(const Vector2d * const polytope, 
+	const size_t polytopeSize, EpaEdgeInfo * const edgeInfo)
 {
 	unsigned int index;
 	Vector2d edge, normal;
@@ -169,8 +169,8 @@ void epaFindClosestEdge(const Vector2d * polytope, size_t polytopeSize,
 	}
 }
 
-void epaInsertVertex(Vector2d * polytope , size_t * polytopeSize, 
-	const unsigned int index, Vector2d vertex)
+void epaInsertVertex(Vector2d * const polytope, size_t * const polytopeSize, 
+	const unsigned int index, const Vector2d vertex)
 {
 	for(unsigned int i = polytopeSize; i > Index + 1; i--)
 		polytope[i] = polytope[i - 1];
@@ -179,47 +179,36 @@ void epaInsertVertex(Vector2d * polytope , size_t * polytopeSize,
 	polytopeSize++;
 }
 
-EPA_INFO2D epa_info2d(
-	const Vector2d * Vertices1, const size_t Vertices1_n, 
-	const Vector2d* 		Vertices2, 
-	const UINT  			Vertices2_n,
-	const GJK_SIMPLEX2D& 	Simplex,
-	Vector2d**				Polytope
+void getEpaInfo2d(
+	const Vector2d * const array1, const size_t size1, 
+	const Vector2d * const array2, const size_t size2,
+	const GjkSimplex2d * const	simplex,
+	Vector2d**	polytope, const size_t polytopeBufferSize
+	EpaInfo2d * const epaInfo
 ){
-	EPA_INFO2D 		info;
-	Vector2d*		polytope;
-	UINT			polytope_size;
-	UINT			polytope_size_max;
-	Vector2d 		vertex;
-	double 			distance;
-	EPA_EDGE_INFO	closest_edge;
-	
-	//alloc memory for polytope, polytope size not higher sco size
-	polytope_size_max =  Vertices1_n * Vertices2_n;
-	polytope = new Vector2d[polytope_size_max];
-	
-	//copy simplex in polytope
-	polytope_size = 3;
-	for(UINT i = 0; i < polytope_size; i++)
-		polytope[i] = Simplex.values[i];
+	EpaInfo2d info;
+	size_t polytopeSize;
+	Vector2d vertex;
+	double distance;
+	EpaEdgeInfo	closestEdgeInfo;
+
+	polytopeSize = 3;
+	memcpy(polytope, simplex, sizeof(Vector2d) * 3);
 	
 	//polytope expansion
 	while(true){
-		closest_edge = epa_find_closest_edge(polytope, polytope_size);
+		epaFindClosestEdge(polytope, polytopeSize, &closestEdgeInfo);
 		
-		vertex = gjk_support_sco(
-			Vertices1, Vertices1_n,
-			Vertices2, Vertices2_n,
-			closest_edge.normal
-		);
+		vertex = gjkSupportSCO(array1, size1, array2, size2,
+			closestEdgeInfo.normal);
 		
-		distance = scalar_product2d(vertex, closest_edge.normal);
+		distance = scalarProd2d(vertex, closestEdgeInfo.normal);
 		//0.0000001 tolerance constant to prevent looping due floating point error
-		if(distance - closest_edge.distance > 0.0000001 && polytope_size < polytope_size_max){
-			epa_insert_vertex(
-				polytope			, polytope_size, 
-				closest_edge.index	, vertex
-			);
+		if(distance - closestEdgeInfo.distance > 0.0000001 && 
+			polytopeSize < polytopeBufferSize)
+		{
+			epaInsertVertex(polytope, polytopeSize, closest_edge.index, 
+				vertex);
 			
 		}else{
 			info.distance 		= closest_edge.distance;
