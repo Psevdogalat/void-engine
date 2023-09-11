@@ -1,5 +1,5 @@
-#ifndef __GEOMETRY2_H__
-#define __GEOMETRY2_H__
+#ifndef __GEOMETRY_H__
+#define __GEOMETRY_H__
 
 
 #ifdef __cplusplus

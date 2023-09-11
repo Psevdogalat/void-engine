@@ -1,7 +1,9 @@
-#ifndef _COLLISIONS2_H_
-#define _COLLISIONS2_H_
+#ifndef __COLLISIONS_H__
+#define __COLLISIONS_H__
 
-#include <geometry2.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <geometry.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -14,7 +16,7 @@ extern "C"{
 	/* gjk collision check function betwen two convex shapes 		*/
 	/* given by arrays of vertices. the function is not 			*/
 	/* commutative with respect to the return value of the simplex 	*/
-	bool gjk2(const Vector2d *, size_t, const Vector2d *, size_t,
+	bool gjkCollision2d(const Vector2d *, size_t, const Vector2d *, size_t,
 		GJKSimplex2 *);
 	
 	
@@ -28,7 +30,7 @@ extern "C"{
 	/* function return additional information abount normal and 	*/
 	/* penetration depth one shape in another, based on information */
 	/* from previous call gjk_collision2d on the same source data 	*/
-	bool epa2(const Vector2d *, size_t, const Vector2d *, size_t, 
+	bool epaCollision2d(const Vector2d *, size_t, const Vector2d *, size_t, 
 		const GJKSimplex2 *, Vector2d *, size_t *, EPAInfo2 *);
 	
 	/* ray cast  */ 
