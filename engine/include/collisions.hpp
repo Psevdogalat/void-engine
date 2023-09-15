@@ -2,23 +2,26 @@
 #define _COLLISIONS_HPP_
 
 	#include <geometry.hpp>
-	#include <collision2.h>
+	#include <collision.h>
 	
 	/* collision model class, used for convenient setting of collision figures 
-	in space */ 
-	class CollisionModel: public Transformation2d, public VectorArray2
+		in space */ 
+	class CollisionModel: public Transformation2d, public VectorArray2d
 	{
 		public:
 		CollisionModel();
 		CollisionModel(const CollisionModel &);
-		CollisionModel(const VectorArray2 &);
-		CollisionModel(const Vector2d *, size_t);
+		CollisionModel(const VectorArray2d &);
+		CollisionModel(const Vector2d * const, const size_t);
 		~CollisionModel();
 
-		bool raycast(const Vector2d &, const Vector2d &, RaycastInfo2 *) const;
-		bool collision(const CollisionModel &, GJKSimplex2 *, EPAInfo2 *) 
+		bool raycast(const Vector2d &, const Vector2d &, RaycastInfo2d *) 
+			const;
+
+		bool collision(const CollisionModel &, GJKSimplex2d , EPAInfo2d *) 
 			const;	
-		bool collision(const Vector2d &, GJKSimplex2 *, EPAInfo2 *) const;		
+
+		bool collision(const Vector2d &, GJKSimplex2d , EPAInfo2d *) const;		
 		
 		CollisionModel & operator= (const CollisionModel &);
 	};
@@ -36,9 +39,6 @@
 		};
 		
 		CollisionType type;
-		GameObject * object;
-		CollisionNode * node;
-		
 		union{			
 			GJKSimplex2	 gjk;
 			EPAInfo2	 epa;
@@ -47,6 +47,7 @@
 		
 	}CollisionInfo;
 
+	/*
 	class CollisionNode
 	{
 		public:
@@ -77,5 +78,6 @@
 		bool imprint(CollisionNode * );
 			
 	};
+	*/
 
 #endif

@@ -11,38 +11,44 @@ extern "C"{
 
 	/* Gilbert — Johnson — Keerthi algorithm */
 	/* 2D simplex for GJK algorithm */
-	typedef Vector2d GJKSimplex2[3];
+	typedef Vector2d GJKSimplex2d[3];
 	
 	/* gjk collision check function betwen two convex shapes 		*/
 	/* given by arrays of vertices. the function is not 			*/
 	/* commutative with respect to the return value of the simplex 	*/
-	bool gjkCollision2d(const Vector2d *, size_t, const Vector2d *, size_t,
-		GJKSimplex2 *);
-	
+	bool gjkCollision2d(
+		const Vector2d * const array1, const size_t arraySize1, 
+		const Vector2d * const array2, const size_t arraySize2,
+		GJKSimplex2d simplex);
 	
 	/* Expanding Polytope Algorithm */
 	/* EPA info struct */
 	typedef struct{
-		Vector2d 	normal;
-		double 		distance;
-	}EPAInfo2;
+		Vector2d normal;
+		double distance;
+		size_t polytopeSize;
+	}EPAInfo2d;
 	
 	/* function return additional information abount normal and 	*/
 	/* penetration depth one shape in another, based on information */
 	/* from previous call gjk_collision2d on the same source data 	*/
-	bool epaCollision2d(const Vector2d *, size_t, const Vector2d *, size_t, 
-		const GJKSimplex2 *, Vector2d *, size_t *, EPAInfo2 *);
+	void getEpaInfo2d(
+		const Vector2d * const array1, const size_t arraySize1, 
+		const Vector2d * const array2, const size_t arraySize2, 
+		const GJKSimplex2d simplex, Vector2d * const polytope, 
+		const size_t polytopeBufferSize, EPAInfo2d * const epaInfo);
 	
 	/* ray cast  */ 
 	/* ray cast info struct*/
 	typedef struct{
-		Vector2d 	normal;
-		double 		distance;
-	}RaycastInfo2;
+		Vector2d normal;
+		double distance;
+	}RaycastInfo2d;
 	
 	/* function check first intersection ray given from the origin and */
 	/* shape given by array of vertices, additional instersection info */ 
-	bool raycast2d(Vector2d, const Vector2d *, size_t, RaycastInfo2 *);
+	bool raycast2d(const Vector2d direction, const Vector2d * const vertices, 
+		const size_t verticesNumber, RaycastInfo2d * const info);
 
 #ifdef __cplusplus
 }

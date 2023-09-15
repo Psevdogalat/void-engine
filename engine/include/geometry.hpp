@@ -1,7 +1,7 @@
 #ifndef _GEOMETRY_HPP_
 #define _GEOMETRY_HPP_
 
-#include <geometry2.h>
+#include <geometry.h>
 
 #include <cmath>
 #include <list>
@@ -75,23 +75,23 @@ class Transformation2d: public OrientedObject2d, public ScalableObject2d{
 	Transformation2d & operator= 	(const Transformation2d &);
 };
 
-class VectorArray2
+class VectorArray2d
 {
 	private:
 	Vector2d * buffer;
 	size_t size;
 
 	public:		
-	VectorArray2(size_t );
-	VectorArray2(const VectorArray2 & );
-	~VectorArray2();
+	VectorArray2d(size_t );
+	VectorArray2d(const VectorArray2d & );
+	~VectorArray2d();
 
 	size_t getSize() const;
 	void setVertices(const Vector2d *, size_t );
-	void SetVertices(const VectorArray2 & );
+	void setVertices(const VectorArray2d & );
 	Vector2d * getVertices();
 	
-	VectorArray2 & operator= (const VectorArray2 &);
+	VectorArray2d & operator= (const VectorArray2d &);
 
 };
 
@@ -151,7 +151,7 @@ class VectorFormater2
 	VectorFormater2();
 	~VectorFormater2();		
 
-	virtual void format(VectorArray2 &) const  = 0;
+	virtual void format(VectorArray2d &) const  = 0;
 	virtual void format(Vector2d *, size_t ) const = 0;
 	virtual size_t getFormatSize() const  = 0;
 };
@@ -164,7 +164,7 @@ class LineFormater2: public Line, public Transformation2d,
 	LineFormater2(const LineFormater2 &);	
 	~LineFormater2();
 
-	void format(VectorArray2 &);
+	void format(VectorArray2d &);
 	void format(Vector2d *, size_t);		
 };
 
@@ -176,7 +176,7 @@ class RectangleFormater2: public Rectangle, public Transformation2d,
 	RectangleFormater2(const RectangleFormater2 &);
 	~RectangleFormater2();
 
-	void format(VectorArray2 &);
+	void format(VectorArray2d &);
 	void format(Vector2d *, size_t);	
 };
 
@@ -188,18 +188,18 @@ class CircleFormater2: public Circle, public Transformation2d,
 	CircleFormater2(const CircleFormater2 &);
 	~CircleFormater2();
 
-	void format(VectorArray2 &);
+	void format(VectorArray2d &);
 	void format(Vector2d *, size_t);		
 };
 
-class ArrayFormater2: public VectorArray2, public Transformation2d,
+class ArrayFormater2: public VectorArray2d, public Transformation2d,
 	public VectorFormater2
 {
 	ArrayFormater2();
 	ArrayFormater2(const ArrayFormater2 &);
 	~ArrayFormater2();
 
-	void format(VectorArray2 &);
+	void format(VectorArray2d &);
 	void format(Vector2d *, size_t);	
 };
 
