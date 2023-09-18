@@ -40,9 +40,9 @@
 		
 		CollisionType type;
 		union{			
-			GJKSimplex2	 gjk;
-			EPAInfo2	 epa;
-			RaycastInfo2 ray;
+			GJKSimplex2d gjk;
+			EPAInfo2d epa;
+			RaycastInfo2d ray;
 		};
 		
 	}CollisionInfo;

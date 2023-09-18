@@ -34,31 +34,25 @@ bool mtmCollision2d(
 	const Vector2d * array1; size_t size1;
 	const Vector2d * array2; size_t size2;
 	
-	array1 	= Model_first.get_vertices();
-	vertices1_n	= Model_first.get_vertices_n();
-	vertices2 	= Model_second.get_vertices();
-	vertices2_n	= Model_second.get_vertices_n();
+	array1 = model1.getVertices();
+	size1 = model1.getSize();
+	array2 = model2.getVertices();
+	size2 = model2.getSize();
 	
-	if(
-		gjk_collision2d(
-			vertices1, vertices1_n,
-			vertices2, vertices1_n,
-			&simplex
-		)
-	){
-		if(Gjk_simplex != nullptr)
-			*Gjk_simplex = simplex; 
-		
-		
-		if(Epa_info != nullptr)
-			*Epa_info = 
-				epa_info2d(
-					vertices1, vertices1_n,
-					vertices2, vertices1_n,
-					simplex,
-					nullptr
-				);
-		
+	if( gjkCollision2d(array1, size1, array2, size2, simplex) )
+	{
+		if(info != nullptr)
+		{
+			Vector2d * polytopeBuffer;
+			size_t polytopeBufferSize;
+
+			polytopeBufferSize = size1 * size2;
+			polytopeBuffer = (Vector2d *) malloc(sizeof(Vector2d) * 
+				polytopeBufferSize);
+			getEpaInfo2d(array1, size1, array2, size2, simplex, polytopeBuffer,
+				polytopeBufferSize, info);
+			free(polytopeBuffer);
+		}
 		
 		return true;
 	}
@@ -66,40 +60,27 @@ bool mtmCollision2d(
 	return false;
 }
 
-bool ptm_collision2d(
-	const CollisionModel& 	Model_first	,
-	const Vector2d& 		Point,
-	GJK_SIMPLEX2D*			Gjk_simplex, 
-	EPA_INFO2D*				Epa_info 	 
-){
-	const Vector2d* vertices1;
-	UINT	 		vertices1_n;
-	GJK_SIMPLEX2D	simplex;
+bool ptmCollision2d( const CollisionModel & model, const Vector2d & point,
+	GJKSimplex2d simplex, EPAInfo2d * info)
+{
+	const Vector2d * array1;
+	size_t size1;
+
+	array1 = model.getVertices();
+	size1 = model.getSize();
 	
-	vertices1 	= Model_first.get_vertices();
-	vertices1_n	= Model_first.get_vertices_n();
-	
-	if(
-		gjk_collision2d(
-			vertices1	, vertices1_n,
-			&Point		, 1,
-			&simplex
-		)
-	){
-		if(Gjk_simplex != nullptr)
-			*Gjk_simplex = simplex; 
-		
-		
-		if(Epa_info != nullptr)
-			*Epa_info = 
-				epa_info2d(
-					vertices1	, vertices1_n,
-					&Point		, 1,
-					simplex,
-					nullptr
-				);
-		
-		
+	if( gjkCollision2d(array1, size1, &point, 1, simplex) )
+	{
+		if(info != nullptr)
+		{
+			Vector2d * polytopeBuffer;
+
+			polytopeBuffer = (Vector2d *) malloc(sizeof(Vector2d) * size1);
+			getEpaInfo2d(array1, size1, &point, 1, simplex, polytopeBuffer,
+				size1, info);
+			free(polytopeBuffer);
+		}
+
 		return true;
 	}
 	
@@ -111,15 +92,15 @@ bool raycast2d(
 	const Vector2d & origin,
 	const Vector2d & direction, 
 	const CollisionModel & model,
-	RaycastInfo2 * const info
+	RaycastInfo2d * const info
 ){
-	MATRIX33 tm;
+	Matrix33d tm;
 	const Vector2d*	raw_vertices;
 	Vector2d*		vertices;
-	UINT			vertices_n;
+	size_t			vertices_n;
 	bool 			collision;
 	
-	tm = mat33_trp(-Origin) * Model.get_forward_matrix();
+	tm = mat33_trp(-origin) * model.get_forward_matrix();
 	
 	vertices_n 		= Model.get_vertices_n();
 	raw_vertices	= Model.get_raw_vertices();

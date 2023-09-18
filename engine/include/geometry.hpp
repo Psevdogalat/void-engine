@@ -82,14 +82,16 @@ class VectorArray2d
 	size_t size;
 
 	public:		
-	VectorArray2d(size_t );
-	VectorArray2d(const VectorArray2d & );
+	VectorArray2d();
+	VectorArray2d(const size_t arraySize);
+	VectorArray2d(const VectorArray2d & smpl);
+	VectorArray2d(const Vector2d * const array, const size_t arraySize);
 	~VectorArray2d();
 
 	size_t getSize() const;
-	void setVertices(const Vector2d *, size_t );
-	void setVertices(const VectorArray2d & );
-	Vector2d * getVertices();
+	const Vector2d * getVertices() const;
+	void setVertices(const Vector2d * array, size_t arraySize);
+	void setVertices(const VectorArray2d & vectorArray);
 	
 	VectorArray2d & operator= (const VectorArray2d &);
 
