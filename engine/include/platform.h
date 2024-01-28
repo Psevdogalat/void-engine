@@ -5,7 +5,14 @@
 #define PLFM_ERROR -1
 #define PLFM_ERROR_INVALIDARG 1
 
-#define PLFM_INVALID_ID -1
+#define PLFMRESULT unsigned int 
+#define PLFMHANDLE unsigned int 
+#define PLFMHWND PLFMHANDLE
+#define PLFMHGC	PLFMHANDLE
+#define PLFMHTIMER PLFMHANDLE
+
+#define PLFM_INVALID_HANDLE (PLFMHANDLE) -1
+#define PLFM_NULL_HANDLE (PLFMHANDLE) 0
 
 #define PLFM_MAX_WINDOWS 10
 
@@ -13,26 +20,38 @@
 extern "C"{
 #endif
 
-typedef void (*RenderProcedure)(unsigned int wndId);
-typedef void (*ReshapeProcedure)(unsigned int wndId, unsigned int width,
-	unsigned int height);
-typedef void (*KeyProcedure)(unsigned int wndId, const char key);
-typedef void (*MouseProcedure)(unsigned int wndId, 
-	const unsigned int x, unsigned int y, unsigned int keys);
-typedef void (*TimerProcedure)(unsigned int id);
+typedef void (*PlfmRenderProc)(PLFMHWND);
+typedef void (*PlfmReshapeProc)(PLFMHWND, unsigned int, unsigned int);
+typedef void (*PlfmKeyProc)(PLFMHWND, const char);
+typedef void (*PlfmMouseProc)(PLFMHWND, unsigned int, unsigned int, 
+	unsigned int keys);
+typedef void (*PlfmCloseProc)(PLFMHWND );
+typedef void (*PlfmTimerProc)(PLFMHTIMER);
 
-unsigned int plfmInit();
-unsigned int plfmFree();
-unsigned int plfmLoop();
-unsigned int plfmCreateWindow(unsigned int width, unsigned int height);
-unsigned int plfmDestroyWindow(unsigned int wndId);
-unsigned int plfmShowWindow(unsigned int wndId);
-unsigned int plfmHideWindow(unsigned int wndId);
-unsigned int plfmSetRenderProcedure(unsigned int wndId, RenderProcedure proc);
-unsigned int plfmSetReshapeProcedure(unsigned int wndId, ReshapeProcedure proc);
-unsigned int plfmSetKeyProcedure(unsigned int wndId, KeyProcedure proc);
-unsigned int plfmSetMouseProcedure(unsigned int wndId, MouseProcedure proc);
-unsigned int plfmSetTimer(unsigned int delay, TimerProcedure proc);
+PLFMRESULT plfmInit();
+PLFMRESULT plfmFree();
+PLFMRESULT plfmLoop();
+
+PLFMHWND plfmCreateWindow(unsigned int x, unsigned int y, 
+	unsigned int width, unsigned int height);
+PLFMRESULT plfmDestroyWindow(PLFMHWND hWnd);
+PLFMRESULT plfmShowWindow(PLFMHWND hWnd);
+PLFMRESULT plfmHideWindow(PLFMHWND hWnd);
+PLFMRESULT plfmRedrawWindow(PLFMHWND hWnd);
+PLFMRESULT plfmPostQuitMessage(unsigned int exitCode);
+
+PLFMRESULT plfmSetRenderProc(PLFMHWND hWnd, PlfmRenderProc proc);
+PLFMRESULT plfmSetReshapeProc(PLFMHWND hWnd, PlfmReshapeProc proc);
+PLFMRESULT plfmSetKeyProc(PLFMHWND hWnd, PlfmKeyProc proc);
+PLFMRESULT plfmSetMouseProc(PLFMHWND hWnd, PlfmMouseProc proc);
+PLFMRESULT plfmSetCloseProc(PLFMHWND hWnd, PlfmCloseProc proc);
+
+PLFMRESULT 	plfmInitGL();
+PLFMHGC 	plfmGLCreateGC(PLFMHWND hWnd);
+PLFMRESULT	plfmGLDestroyGC(PLFMHGC hGC);
+PLFMRESULT 	plfmGLMakeCurrent(PLFMHGC hGC);
+
+PLFMRESULT 	plfmSetTimer(unsigned int delay, PlfmTimerProc proc);
 const char * plfmExpandPath(const char * const path);
 
 #ifdef __cplusplus
