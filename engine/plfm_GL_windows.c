@@ -4,6 +4,8 @@
 #include <gl/glew.h>
 #include <gl/wglew.h>
 
+static void printGLInfo();
+
 static PIXELFORMATDESCRIPTOR glPFD;
 static unsigned int glPFI;
 static GLint glMajorVersion;
@@ -110,7 +112,16 @@ PLFMRESULT plfmInitGL(){
 	wglChoosePixelFormatARB(shDummyDC, piAttribIList, pfAttribFList, 
 		1, &glPFI, &formatsNumber);
 
+
 	ReleaseDC(shDummyWnd, shDummyDC);
+	plfmDestroyWindow(dummyWnd);
+
+	PLFMHGC dummyHGC;
+	dummyWnd = plfmCreateWindow(0, 0, 100, 100);
+	dummyHGC = plfmGLCreateGC(dummyWnd);
+	plfmGLMakeCurrent(dummyHGC);
+	printGLInfo();
+	plfmGLMakeCurrent(PLFM_NULL_HANDLE);
 	plfmDestroyWindow(dummyWnd);
 
 	return PLFM_SUCCESS;
@@ -184,3 +195,46 @@ PLFMRESULT plfmGLMakeCurrent(PLFMHGC hGC){
 
 	return PLFM_SUCCESS;
 };
+
+static void printGLInfo(){
+
+	int i;	
+	GLint profileMask;
+	GLint shaderVersionsNumber;
+	
+    const static struct 
+	{
+		const char * title;
+		GLenum	info_id;
+	}infoList[] = 
+	{
+		{"OPENGL_VERSION"				, GL_VERSION					},
+		{"GL_VENDOR"					, GL_VENDOR						},
+		{"GL_RENDERER"					, GL_RENDERER					},
+		{"GL_SHADING_LANGUAGE_VERSION"	, GL_SHADING_LANGUAGE_VERSION	}
+	};
+	
+	printf("==================GL_INFO=========================\n");
+
+	for(i = 0 ; i < sizeof(infoList)/sizeof(infoList[0]); i++)
+		printf("%s:\t %s\n",infoList[i].title, 
+			glGetString(infoList[i].info_id)
+		);
+	
+	glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMask);
+	printf("PROFILE_MASK: %X\n", profileMask);
+	printf("in %s_PROFILE\n", (profileMask & GL_CONTEXT_CORE_PROFILE_BIT)?
+		"CORE":"COMPATIBILITY");
+	
+	shaderVersionsNumber = 0;
+	glGetIntegerv(GL_NUM_SHADING_LANGUAGE_VERSIONS, &shaderVersionsNumber);
+	printf("SHADER VERSIONS:\n");
+	for(i = 0; i < shaderVersionsNumber; i++)
+		printf("VER % 3d: %s\n", i, 
+			glGetStringi(GL_SHADING_LANGUAGE_VERSION, i)
+		);
+	
+	printf("==================================================\n");
+	
+};
+
